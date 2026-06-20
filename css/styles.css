@@ -35,7 +35,7 @@
   --font-body: 'Nunito', system-ui, sans-serif;
 
   --max: 1080px;
-  --nav-h: 72px;
+  --nav-h: 84px;
 }
 
 /* ── Reset ── */
@@ -158,7 +158,7 @@ p { color: var(--text-light); }
   text-decoration: none;
 }
 .nav__logo-img {
-  height: 48px;
+  height: 68px;
   width: auto;
   display: block;
 }
@@ -712,11 +712,12 @@ p { color: var(--text-light); }
   margin-bottom: 1rem;
 }
 .footer__logo-img {
-  height: 52px;
+  height: 64px;
   width: auto;
   display: block;
-  filter: brightness(0) invert(1);
-  opacity: 0.88;
+  background: var(--white);
+  border-radius: var(--r-sm);
+  padding: .4rem .75rem;
 }
 .footer__tagline { font-size: .88rem; line-height: 1.6; max-width: 280px; }
 .footer h4 { font-family: var(--font-head); color: var(--white); margin-bottom: 1rem; font-size: 1rem; }
