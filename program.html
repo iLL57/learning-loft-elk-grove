@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Program — The Learning Loft of Elk Grove</title>
+  <meta name="description" content="Tuesdays and Thursdays, 10am–2:30pm. Four hands-on enrichment rotations: reading/writing, gardening/nature, art/creativity, and life skills." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ── Navigation ── -->
+  <nav class="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo" aria-label="The Learning Loft of Elk Grove — Home">
+        <div class="nav__logo-leaf" aria-hidden="true"></div>
+        <div class="nav__logo-text">
+          <span class="nav__logo-name">The Learning Loft</span>
+          <span class="nav__logo-sub">of Elk Grove</span>
+        </div>
+      </a>
+      <button class="nav__hamburger" id="navHamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav__links" id="navLinks" role="list">
+        <li><a href="index.html"      class="nav__link">Home</a></li>
+        <li><a href="about.html"      class="nav__link">About</a></li>
+        <li><a href="program.html"    class="nav__link">Program</a></li>
+        <li><a href="enrollment.html" class="nav__link nav__link--enroll">Enroll</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ── Page Hero ── -->
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow eyebrow--light">Tuesdays &amp; Thursdays</span>
+      <h1>Our Enrichment Program</h1>
+      <p>Four hands-on rotations, twice a week — designed to deepen skills, spark creativity, and build community.</p>
+    </div>
+  </section>
+
+  <!-- ── Wave ── -->
+  <div class="wave" style="background:linear-gradient(135deg,var(--green-dark),var(--green));margin-top:-1px;">
+    <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path fill="#F8F4ED" d="M0,20 C360,70 1080,0 1440,50 L1440,60 L0,60 Z"/></svg>
+  </div>
+
+  <!-- ── Schedule Overview ── -->
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:3.5rem; align-items:start">
+        <div class="fade-up">
+          <span class="eyebrow">When We Meet</span>
+          <h2>The Schedule at a Glance</h2>
+          <p>We gather twice a week for a full enrichment day. The rhythm is intentional — enough time to go deep, with space for lunch, free exploration, and community.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:1rem; margin-top:2rem;">
+            <div style="background:var(--green-pale); border-radius:var(--r-md); padding:1.25rem 1.75rem; display:flex; align-items:center; gap:1rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <div>
+                <div style="font-weight:700; color:var(--green-dark); font-size:.95rem;">Days</div>
+                <div style="color:var(--text-light); font-size:.88rem;">Tuesdays &amp; Thursdays</div>
+              </div>
+            </div>
+            <div style="background:var(--tan-light); border-radius:var(--r-md); padding:1.25rem 1.75rem; display:flex; align-items:center; gap:1rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--tan-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <div>
+                <div style="font-weight:700; color:var(--tan-dark); font-size:.95rem;">Hours</div>
+                <div style="color:var(--text-light); font-size:.88rem;">10:00 AM – 2:30 PM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Schedule Table -->
+        <div class="fade-up" style="transition-delay:.15s">
+          <table class="schedule-table" aria-label="Daily schedule">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Block</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="time-cell">10:00 AM</td>
+                <td>
+                  <strong>Welcome Circle</strong><br>
+                  <span style="font-size:.85rem; color:var(--text-muted)">Gathering, intentions &amp; morning check-in</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="time-cell">10:15 AM</td>
+                <td>
+                  <strong>Enrichment Block 1</strong><br>
+                  <span style="font-size:.85rem; color:var(--text-muted)">First rotation (60 min)</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="time-cell">11:15 AM</td>
+                <td>
+                  <strong>Enrichment Block 2</strong><br>
+                  <span style="font-size:.85rem; color:var(--text-muted)">Second rotation (60 min)</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="time-cell">12:15 PM</td>
+                <td>
+                  <strong>Lunch &amp; Free Time</strong><br>
+                  <span style="font-size:.85rem; color:var(--text-muted)">Community lunch, outdoor play &amp; rest</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="time-cell">1:00 PM</td>
+                <td>
+                  <strong>Enrichment Block 3</strong><br>
+                  <span style="font-size:.85rem; color:var(--text-muted)">Third rotation (60 min)</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="time-cell">2:00 PM</td>
+                <td>
+                  <strong>Closing Circle</strong><br>
+                  <span style="font-size:.85rem; color:var(--text-muted)">Share, reflect &amp; celebrate the day</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="time-cell">2:30 PM</td>
+                <td>
+                  <strong>Dismissal</strong>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Wave divider ── -->
+  <div class="wave" style="background:var(--cream); margin-top:-1px;">
+    <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path fill="#FDFAF6" d="M0,40 C360,0 1080,60 1440,20 L1440,60 L0,60 Z"/></svg>
+  </div>
+
+  <!-- ── Enrichment Rotations ── -->
+  <section class="section section--alt">
+    <div class="container">
+      <div class="text-center section-intro fade-up">
+        <span class="eyebrow">What We Do</span>
+        <h2>Four Enrichment Rotations</h2>
+        <p>Each rotation is guided by an experienced, caring adult who loves their subject and the children they teach. Activities rotate across the semester to provide variety and depth.</p>
+      </div>
+
+      <!-- Reading & Writing -->
+      <div class="rotation-card fade-up" style="margin-bottom:1.5rem;">
+        <div class="rotation-card__header">
+          <div class="rotation-card__icon" style="background:#dceeda;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--green-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </div>
+          <div>
+            <span style="font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--green)">Rotation 1</span>
+            <h3>Reading &amp; Writing</h3>
+          </div>
+        </div>
+        <div class="rotation-card__body">
+          <div class="grid-2" style="gap:2rem; align-items:start">
+            <div>
+              <p>Stories are at the heart of how humans make sense of the world. In this rotation, children explore the joy of both receiving and creating stories — through read-alouds, book discussions, journaling, and their own creative writing projects.</p>
+              <p style="margin-top:.75rem;">We meet children where they are as readers and writers, honoring every level while gently stretching each child's capacity and love for language.</p>
+            </div>
+            <div>
+              <h4 style="font-size:.9rem; font-weight:700; color:var(--text); margin-bottom:.75rem;">What Children Experience</h4>
+              <ul style="color:var(--text-light); font-size:.9rem; display:flex; flex-direction:column; gap:.5rem;">
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--green); font-weight:700; margin-top:.1rem;">✦</span> Read-alouds and guided literature discussions</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--green); font-weight:700; margin-top:.1rem;">✦</span> Personal journaling and reflective writing</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--green); font-weight:700; margin-top:.1rem;">✦</span> Creative fiction, poetry, and storytelling</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--green); font-weight:700; margin-top:.1rem;">✦</span> Collaborative writing projects and sharing circles</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--green); font-weight:700; margin-top:.1rem;">✦</span> Author studies and book club conversations</li>
+              </ul>
+            </div>
+          </div>
+          <div class="rotation-card__tags">
+            <span class="tag">Literacy</span>
+            <span class="tag">Creative Writing</span>
+            <span class="tag">Storytelling</span>
+            <span class="tag">Book Club</span>
+            <span class="tag">Poetry</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gardening & Nature -->
+      <div class="rotation-card fade-up" style="margin-bottom:1.5rem; transition-delay:.1s">
+        <div class="rotation-card__header">
+          <div class="rotation-card__icon" style="background:#d5ead1;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--green-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M8 5.2A7.001 7.001 0 0 1 12 5c1.7 0 3.2.6 4.4 1.5"/><path d="M12 5V2"/></svg>
+          </div>
+          <div>
+            <span style="font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--green)">Rotation 2</span>
+            <h3>Gardening &amp; Nature</h3>
+          </div>
+        </div>
+        <div class="rotation-card__body">
+          <div class="grid-2" style="gap:2rem; align-items:start">
+            <div>
+              <p>There is no better classroom than the living world. In our garden and outdoor spaces, children learn the full cycle of life — planting seeds, tending plants, observing insects, and harvesting food they've grown with their own hands.</p>
+              <p style="margin-top:.75rem;">Nature journaling, outdoor science exploration, and seasonal projects connect children to the rhythms of the earth and cultivate a deep sense of stewardship and wonder.</p>
+            </div>
+            <div>
+              <h4 style="font-size:.9rem; font-weight:700; color:var(--text); margin-bottom:.75rem;">What Children Experience</h4>
+              <ul style="color:var(--text-light); font-size:.9rem; display:flex; flex-direction:column; gap:.5rem;">
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--green); font-weight:700; margin-top:.1rem;">✦</span> Hands-on planting, tending &amp; harvesting</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--green); font-weight:700; margin-top:.1rem;">✦</span> Nature journaling and field sketching</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--green); font-weight:700; margin-top:.1rem;">✦</span> Bug hunts, bird watching &amp; outdoor observation</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--green); font-weight:700; margin-top:.1rem;">✦</span> Composting and soil science</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--green); font-weight:700; margin-top:.1rem;">✦</span> Seasonal nature crafts and celebrations</li>
+              </ul>
+            </div>
+          </div>
+          <div class="rotation-card__tags">
+            <span class="tag">Gardening</span>
+            <span class="tag">Nature Journaling</span>
+            <span class="tag">Outdoor Science</span>
+            <span class="tag">Botany</span>
+            <span class="tag">Stewardship</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Art & Creativity -->
+      <div class="rotation-card fade-up" style="margin-bottom:1.5rem; transition-delay:.2s">
+        <div class="rotation-card__header">
+          <div class="rotation-card__icon" style="background:#f0e0cc;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><path d="M17 14c-1.1 0-1.97.8-2 1.9-.03 1.04.9 1.85 1.95 1.85.47 0 .88-.17 1.2-.44.57-.5.85-1.24.85-2.01V14h-2z"/><path d="M6 3L3 6l4 4"/><path d="M3 3l3 3"/></svg>
+          </div>
+          <div>
+            <span style="font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--brown)">Rotation 3</span>
+            <h3>Art &amp; Creativity</h3>
+          </div>
+        </div>
+        <div class="rotation-card__body">
+          <div class="grid-2" style="gap:2rem; align-items:start">
+            <div>
+              <p>Creativity is not a talent — it's a practice. Our art rotation invites every child to explore visual arts, mixed media, and maker projects in an environment where experimentation is celebrated and there are no wrong answers.</p>
+              <p style="margin-top:.75rem;">From watercolor painting to clay sculpture, collage to fiber arts, children discover their own creative voice while building fine motor skills, spatial reasoning, and the courage to take creative risks.</p>
+            </div>
+            <div>
+              <h4 style="font-size:.9rem; font-weight:700; color:var(--text); margin-bottom:.75rem;">What Children Experience</h4>
+              <ul style="color:var(--text-light); font-size:.9rem; display:flex; flex-direction:column; gap:.5rem;">
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--brown); font-weight:700; margin-top:.1rem;">✦</span> Watercolor, acrylic &amp; mixed media painting</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--brown); font-weight:700; margin-top:.1rem;">✦</span> Clay sculpting and 3D projects</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--brown); font-weight:700; margin-top:.1rem;">✦</span> Collage, fiber arts &amp; weaving</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--brown); font-weight:700; margin-top:.1rem;">✦</span> Maker projects and inventive building</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--brown); font-weight:700; margin-top:.1rem;">✦</span> Artist studies and art history connections</li>
+              </ul>
+            </div>
+          </div>
+          <div class="rotation-card__tags">
+            <span class="tag">Visual Arts</span>
+            <span class="tag">Sculpture</span>
+            <span class="tag">Mixed Media</span>
+            <span class="tag">Maker Projects</span>
+            <span class="tag">Art History</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Life Skills -->
+      <div class="rotation-card fade-up" style="transition-delay:.3s">
+        <div class="rotation-card__header">
+          <div class="rotation-card__icon" style="background:var(--tan-light);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--tan-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div>
+            <span style="font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--tan-dark)">Rotation 4</span>
+            <h3>Life Skills</h3>
+          </div>
+        </div>
+        <div class="rotation-card__body">
+          <div class="grid-2" style="gap:2rem; align-items:start">
+            <div>
+              <p>One of the great gifts of home education is the freedom to teach what truly matters for life. Our life skills rotation is built on that premise — giving children real-world competence, practical confidence, and the satisfaction of knowing how to do things.</p>
+              <p style="margin-top:.75rem;">From the kitchen to the garden shed, from the sewing table to the basics of managing money, children learn skills that will serve them for a lifetime.</p>
+            </div>
+            <div>
+              <h4 style="font-size:.9rem; font-weight:700; color:var(--text); margin-bottom:.75rem;">What Children Experience</h4>
+              <ul style="color:var(--text-light); font-size:.9rem; display:flex; flex-direction:column; gap:.5rem;">
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--tan-dark); font-weight:700; margin-top:.1rem;">✦</span> Cooking and kitchen skills (knife safety, recipes)</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--tan-dark); font-weight:700; margin-top:.1rem;">✦</span> Beginner sewing and mending</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--tan-dark); font-weight:700; margin-top:.1rem;">✦</span> Basic woodworking and tool use</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--tan-dark); font-weight:700; margin-top:.1rem;">✦</span> Financial literacy — earning, saving &amp; spending</li>
+                <li style="display:flex; gap:.5rem; align-items:flex-start;"><span style="color:var(--tan-dark); font-weight:700; margin-top:.1rem;">✦</span> First aid basics, community care &amp; problem-solving</li>
+              </ul>
+            </div>
+          </div>
+          <div class="rotation-card__tags">
+            <span class="tag">Cooking</span>
+            <span class="tag">Sewing</span>
+            <span class="tag">Woodworking</span>
+            <span class="tag">Financial Literacy</span>
+            <span class="tag">First Aid</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Wave ── -->
+  <div class="wave" style="background:var(--white); margin-top:-1px;">
+    <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path fill="#F8F4ED" d="M0,50 C480,10 960,60 1440,10 L1440,60 L0,60 Z"/></svg>
+  </div>
+
+  <!-- ── What to Expect ── -->
+  <section class="section">
+    <div class="container">
+      <div class="text-center section-intro fade-up">
+        <span class="eyebrow">A Typical Day</span>
+        <h2>What to Expect When You Arrive</h2>
+        <p>Every day at The Learning Loft is grounded in warmth, routine, and the freedom to be a kid who loves learning.</p>
+      </div>
+      <div class="grid-3" style="gap:1.5rem;">
+        <div class="card fade-up">
+          <div class="card__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
+          <h3>Warm Arrivals</h3>
+          <p>Children are greeted by name each morning. Our welcome circle sets the tone for a day of intention, joy, and community.</p>
+        </div>
+        <div class="card fade-up" style="transition-delay:.1s">
+          <div class="card__icon card__icon--tan">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h3>Purposeful Rotations</h3>
+          <p>Each block is thoughtfully planned with themes and projects that build across the semester. No two days look exactly alike.</p>
+        </div>
+        <div class="card fade-up" style="transition-delay:.2s">
+          <div class="card__icon card__icon--brown">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Community Lunch</h3>
+          <p>Shared meals matter. Lunch is an unhurried time for friendship, laughter, and the kind of connection that turns classmates into lifelong friends.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA Band ── -->
+  <section class="cta-band">
+    <div class="container">
+      <span class="eyebrow" style="color:rgba(255,255,255,.7)">Reserve a Spot</span>
+      <h2>Ready to See it in Action?</h2>
+      <p>We invite interested families to connect with us and learn more about joining our learning community. Spots are limited to keep our groups small and intentional.</p>
+      <div class="btn-group" style="justify-content:center">
+        <a href="enrollment.html" class="btn btn--outline-light" style="border-color:rgba(255,255,255,.8); color:white; font-size:1.05rem; padding:.9rem 2.2rem;">Express Your Interest</a>
+        <a href="about.html" class="btn" style="background:rgba(255,255,255,.18); color:white;">Learn About Us</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <div class="footer__logo">
+            <div class="footer__logo-leaf" aria-hidden="true"></div>
+            <span class="footer__logo-name">The Learning Loft</span>
+          </div>
+          <p class="footer__tagline">A warm, hands-on enrichment program for homeschooling families in Elk Grove, California. Nurturing curiosity, creativity, and community.</p>
+        </div>
+        <div>
+          <h4>Explore</h4>
+          <ul class="footer__links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="program.html">Our Program</a></li>
+            <li><a href="enrollment.html">Enrollment</a></li>
+          </ul>
+        </div>
+        <div class="footer__contact">
+          <h4>Connect</h4>
+          <p>Elk Grove, California</p>
+          <p>Tuesdays &amp; Thursdays<br>10:00 AM – 2:30 PM</p>
+          <p style="margin-top:.75rem;"><a href="enrollment.html">Inquire about enrollment &rarr;</a></p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>&copy; 2025 The Learning Loft of Elk Grove. All rights reserved.</span>
+        <span>Made with care for homeschool families.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
