@@ -6,16 +6,17 @@
 
 /* ── Variables ── */
 :root {
-  --cream:        #F8F4ED;
-  --cream-dark:   #EDE8DF;
+  --cream:        #F5F0E8;
+  --cream-dark:   #EAE3D6;
   --white:        #FDFAF6;
   --tan:          #C9A87C;
   --tan-light:    #EAD9BC;
   --tan-dark:     #A88550;
-  --green:        #6B8F5E;
-  --green-light:  #A8C899;
-  --green-pale:   #D8EDCE;
-  --green-dark:   #4A6B3F;
+  --green:        #5C7A44;
+  --green-light:  #9ABF85;
+  --green-pale:   #D4EAC8;
+  --green-dark:   #3A5426;
+  --terracotta:   #B5622A;
   --brown:        #8B6C4E;
   --brown-dark:   #5C4033;
   --text:         #3D3228;
@@ -82,7 +83,8 @@ p { color: var(--text-light); }
   color: var(--green);
   margin-bottom: .75rem;
 }
-.eyebrow--tan { color: var(--tan-dark); }
+.eyebrow--tan   { color: var(--tan-dark); }
+.eyebrow--terra { color: var(--terracotta); }
 .eyebrow--light { color: var(--green-light); }
 
 .section-intro {
@@ -153,43 +155,12 @@ p { color: var(--text-light); }
 .nav__logo {
   display: flex;
   align-items: center;
-  gap: .75rem;
   text-decoration: none;
 }
-.nav__logo-leaf {
-  width: 36px;
-  height: 36px;
-  background: var(--green);
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  flex-shrink: 0;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.nav__logo-leaf::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 2px;
-  background: rgba(255,255,255,.5);
-  transform: rotate(45deg);
-  border-radius: 2px;
-}
-.nav__logo-text { display: flex; flex-direction: column; line-height: 1.1; }
-.nav__logo-name {
-  font-family: var(--font-head);
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--green-dark);
-}
-.nav__logo-sub {
-  font-size: .7rem;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--tan-dark);
+.nav__logo-img {
+  height: 48px;
+  width: auto;
+  display: block;
 }
 .nav__links {
   display: flex;
@@ -362,6 +333,34 @@ p { color: var(--text-light); }
 .schedule-table tbody tr:nth-child(even) { background: var(--cream); }
 .schedule-table tbody tr:nth-child(odd) { background: var(--white); }
 .time-cell { font-weight: 700; color: var(--green-dark); white-space: nowrap; }
+
+/* ── Rotation Room Grid ── */
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+.room-card {
+  border-radius: var(--r-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.room-card__header {
+  padding: 1rem 1.25rem;
+  font-weight: 700;
+  font-size: .8rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--white);
+}
+.room-card__body { padding: 1.25rem; background: var(--white); }
+.room-card__body h4 { font-size: 1rem; color: var(--text); margin-bottom: .25rem; }
+.room-card__body p { font-size: .88rem; }
+.room-card--a .room-card__header { background: var(--green-dark); }
+.room-card--b .room-card__header { background: var(--green); }
+.room-card--c .room-card__header { background: var(--terracotta); }
+@media (max-width: 680px) { .room-grid { grid-template-columns: 1fr; } }
 
 /* ── Rotation Cards ── */
 .rotation-card {
@@ -710,23 +709,14 @@ p { color: var(--text-light); }
   margin-bottom: 3rem;
 }
 .footer__logo {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
   margin-bottom: 1rem;
 }
-.footer__logo-leaf {
-  width: 32px;
-  height: 32px;
-  background: var(--green-light);
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  flex-shrink: 0;
-}
-.footer__logo-name {
-  font-family: var(--font-head);
-  font-size: 1.05rem;
-  color: var(--white);
+.footer__logo-img {
+  height: 52px;
+  width: auto;
+  display: block;
+  filter: brightness(0) invert(1);
+  opacity: 0.88;
 }
 .footer__tagline { font-size: .88rem; line-height: 1.6; max-width: 280px; }
 .footer h4 { font-family: var(--font-head); color: var(--white); margin-bottom: 1rem; font-size: 1rem; }
