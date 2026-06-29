@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — The Learning Loft of Elk Grove</title>
+  <meta name="description" content="Get in touch with The Learning Loft of Elk Grove. Send us a message and we'll be in touch within a few days." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ── Navigation ── -->
+  <nav class="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo" aria-label="The Learning Loft of Elk Grove — Home">
+        <img src="images/logo.png" alt="The Learning Loft of Elk Grove" class="nav__logo-img">
+      </a>
+      <button class="nav__hamburger" id="navHamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav__links" id="navLinks" role="list">
+        <li><a href="index.html"      class="nav__link">Home</a></li>
+        <li><a href="about.html"      class="nav__link">About</a></li>
+        <li><a href="program.html"    class="nav__link">Program</a></li>
+        <li><a href="enrollment.html" class="nav__link">Enroll</a></li>
+        <li><a href="contact.html"    class="nav__link">Contact</a></li>
+      </ul>
+      <a href="enrollment.html" class="nav__cta">Enroll Now</a>
+    </div>
+  </nav>
+
+  <!-- ── Page Hero ── -->
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow eyebrow--light">We'd Love to Hear from You</span>
+      <h1>Get in Touch</h1>
+      <p>Whether you have questions about the program, want to learn more before enrolling, or just want to say hello — we're here.</p>
+    </div>
+  </section>
+
+  <!-- ── Contact Section ── -->
+  <section class="section">
+    <div class="container">
+      <div class="contact-grid">
+
+        <!-- Info panel -->
+        <div class="contact-info-panel fade-up">
+          <h3>Our Information</h3>
+
+          <div class="contact-info-item">
+            <div class="contact-info-item__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+            <div>
+              <h4>Location</h4>
+              <p>Elk Grove, California<br><span style="font-size:.82rem; color:var(--text-muted)">Exact address shared upon enrollment</span></p>
+            </div>
+          </div>
+
+          <div class="contact-info-item">
+            <div class="contact-info-item__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8"  y1="2" x2="8"  y2="6"/>
+                <line x1="3"  y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            <div>
+              <h4>Program Days</h4>
+              <p>Tuesdays &amp; Thursdays</p>
+            </div>
+          </div>
+
+          <div class="contact-info-item">
+            <div class="contact-info-item__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div>
+              <h4>Program Hours</h4>
+              <p>10:00 AM – 2:30 PM</p>
+            </div>
+          </div>
+
+          <div class="contact-info-item">
+            <div class="contact-info-item__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </div>
+            <div>
+              <h4>Response Time</h4>
+              <p>We reply within 2–3 business days</p>
+            </div>
+          </div>
+
+          <div class="info-divider"></div>
+
+          <div style="background:var(--green-pale); border-radius:var(--r-sm); padding:1rem 1.25rem; font-size:.88rem; color:var(--green);">
+            <strong>No pressure.</strong> Reaching out is just the start of a conversation — there's no commitment required.
+          </div>
+        </div>
+
+        <!-- Contact form -->
+        <div class="fade-up" style="transition-delay:.1s">
+          <div class="form-card">
+            <h2 style="margin-bottom:.4rem;">Send a Message</h2>
+            <p style="margin-bottom:2rem; font-size:.95rem;">Tell us a bit about yourself and how we can help. Fields marked <span style="color:var(--green); font-weight:700;">*</span> are required.</p>
+
+            <form id="contactForm" novalidate>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="contactFirst">First Name <span class="req">*</span></label>
+                  <input type="text" id="contactFirst" name="firstName" placeholder="Jane" required autocomplete="given-name" />
+                </div>
+                <div class="form-group">
+                  <label for="contactLast">Last Name <span class="req">*</span></label>
+                  <input type="text" id="contactLast" name="lastName" placeholder="Smith" required autocomplete="family-name" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="contactEmail">Email Address <span class="req">*</span></label>
+                  <input type="email" id="contactEmail" name="email" placeholder="jane@email.com" required autocomplete="email" />
+                </div>
+                <div class="form-group">
+                  <label for="contactPhone">Phone Number</label>
+                  <input type="tel" id="contactPhone" name="phone" placeholder="(916) 555-0100" autocomplete="tel" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="contactSubject">What's this about?</label>
+                <select id="contactSubject" name="subject">
+                  <option value="" disabled selected>Select a topic</option>
+                  <option>Questions about the program</option>
+                  <option>Enrollment interest</option>
+                  <option>Schedule or logistics</option>
+                  <option>Something else</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="contactMessage">Message <span class="req">*</span></label>
+                <textarea id="contactMessage" name="message" placeholder="Ask us anything — about the program, the schedule, what a typical day looks like, or anything else on your mind." required></textarea>
+              </div>
+
+              <button type="submit" class="form-submit">Send Message &rarr;</button>
+              <p class="form-note">We'll be in touch within 2–3 business days. No spam, ever.</p>
+            </form>
+
+            <div class="success-msg" id="contactSuccessMsg" role="alert">
+              <h4>Message sent — thank you!</h4>
+              <p>We're so glad you reached out. Someone from The Learning Loft will be in touch very soon. In the meantime, feel free to explore our <a href="program.html" style="color:var(--green); font-weight:700;">program page</a>.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <div class="footer__logo">
+            <img src="images/logo.png" alt="The Learning Loft of Elk Grove" class="footer__logo-img">
+          </div>
+          <p class="footer__tagline">Where curiosity leads learning — a hands-on enrichment program for homeschooling families in Elk Grove, California.</p>
+        </div>
+        <div>
+          <h4>Explore</h4>
+          <ul class="footer__links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="program.html">Program</a></li>
+            <li><a href="enrollment.html">Enroll</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer__contact">
+          <h4>Contact</h4>
+          <p>Elk Grove, California</p>
+          <p>Tuesdays &amp; Thursdays<br>10:00 AM – 2:30 PM</p>
+        </div>
+        <div>
+          <h4>Follow Along</h4>
+          <div class="footer__social">
+            <a href="#" class="footer__social-icon" aria-label="Instagram">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                <circle cx="12" cy="12" r="4"/>
+                <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+              </svg>
+            </a>
+            <a href="#" class="footer__social-icon" aria-label="Facebook">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      <hr class="footer__rule">
+      <div class="footer__bottom">
+        <span>&copy; 2025 The Learning Loft of Elk Grove. All rights reserved.</span>
+        <span>Made with care for homeschool families.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    const contactForm = document.getElementById('contactForm');
+    const contactSuccess = document.getElementById('contactSuccessMsg');
+    if (contactForm) {
+      contactForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const required = contactForm.querySelectorAll('[required]');
+        let valid = true;
+        required.forEach(f => {
+          f.style.borderColor = '';
+          if (!f.value.trim()) { f.style.borderColor = '#c0392b'; valid = false; }
+        });
+        if (!valid) return;
+        const btn = contactForm.querySelector('.form-submit');
+        btn.textContent = 'Sending…';
+        btn.disabled = true;
+        setTimeout(() => {
+          contactForm.style.display = 'none';
+          if (contactSuccess) contactSuccess.classList.add('visible');
+        }, 1000);
+      });
+    }
+  </script>
+</body>
+</html>
