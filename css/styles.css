@@ -658,13 +658,14 @@ em { font-style: italic; }
 
 /* ── Page Hero ── */
 .page-hero {
-  background: var(--green);
-  color: var(--white-warm);
+  background: var(--white-warm);
+  border-bottom: 1px solid var(--border);
   padding: 4rem 0 3.5rem;
   text-align: center;
 }
-.page-hero h1 { color: var(--white-warm); margin-bottom: .75rem; }
-.page-hero p  { color: rgba(247,241,231,.82); max-width: 560px; margin-inline: auto; font-size: 1.05rem; }
+.page-hero .eyebrow { color: var(--terracotta-dark); }
+.page-hero h1 { color: var(--text); margin-bottom: .75rem; }
+.page-hero p  { color: var(--text-body); max-width: 560px; margin-inline: auto; font-size: 1.05rem; }
 
 /* ── Cards ── */
 .card {
