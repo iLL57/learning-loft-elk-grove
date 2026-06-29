@@ -377,7 +377,7 @@ em { font-style: italic; }
   align-items: center;
 }
 .what-section__visual { position: relative; }
-.what-section__photo { width: 100%; aspect-ratio: 4/3; border-radius: var(--r-lg); }
+.what-section__photo { width: 100%; aspect-ratio: 4/3; border-radius: var(--r-lg); object-fit: cover; display: block; }
 .what-section__text h2 {
   font-size: clamp(2rem, 3.5vw, 3rem);
   line-height: 1.1;
@@ -526,7 +526,7 @@ em { font-style: italic; }
   line-height: 1.4;
 }
 .who-section__visual { position: relative; }
-.who-section__photo { width: 100%; aspect-ratio: 9/10; border-radius: var(--r-lg); }
+.who-section__photo { width: 100%; aspect-ratio: 9/10; border-radius: var(--r-lg); object-fit: cover; display: block; }
 
 /* ── Schedule Section ── */
 .schedule-section {
