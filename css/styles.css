@@ -1071,7 +1071,7 @@ em { font-style: italic; }
   margin-bottom: 1.75rem;
 }
 .footer__logo { margin-bottom: .6rem; }
-.footer__logo-img { height: 40px; width: auto; display: block; }
+.footer__logo-img { height: 64px; width: auto; display: block; }
 .footer__tagline { font-size: .87rem; line-height: 1.65; max-width: 260px; color: rgba(247,241,231,.65); }
 .footer h4 {
   font-family: var(--font-body);
