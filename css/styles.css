@@ -392,7 +392,7 @@ em { font-style: italic; }
   background: var(--white-warm);
   padding: 5.5rem 0;
 }
-.experience-section__head { margin-bottom: 3rem; }
+.experience-section__head { margin-bottom: 3rem; text-align: center; }
 .experience-section__head h2 {
   font-size: clamp(2rem, 3.5vw, 3rem);
   line-height: 1.1;
@@ -402,13 +402,17 @@ em { font-style: italic; }
   color: var(--text-body);
   margin-top: .75rem;
   max-width: 540px;
+  margin-inline: auto;
 }
 .exp-grid {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1.25rem;
 }
 .exp-card {
+  flex: 0 1 calc(33.333% - 0.84rem);
+  min-width: 220px;
   background: var(--white-warm);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
@@ -427,7 +431,8 @@ em { font-style: italic; }
   justify-content: center;
   flex-shrink: 0;
 }
-.exp-card__icon svg { width: 24px; height: 24px; }
+.exp-card__icon svg,
+.exp-card__icon img { width: 36px; height: 36px; }
 .exp-card h3 { font-size: 1.15rem; margin-bottom: .5rem; }
 .exp-card p  { font-size: .92rem; }
 
