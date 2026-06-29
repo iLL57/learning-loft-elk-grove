@@ -530,16 +530,18 @@ em { font-style: italic; }
 
 /* ── Schedule Section ── */
 .schedule-section {
-  background: var(--parchment-mid);
+  background: var(--green);
   padding: 5.5rem 0;
 }
-.schedule-section__head { margin-bottom: 3rem; }
+.schedule-section__head { margin-bottom: 3rem; text-align: center; }
+.schedule-section__head .eyebrow { color: rgba(255,255,255,.6); }
 .schedule-section__head h2 {
   font-size: clamp(2rem, 3.5vw, 3rem);
   line-height: 1.1;
   margin-bottom: .75rem;
+  color: var(--white-warm);
 }
-.schedule-section__head p { font-size: 1.05rem; max-width: 620px; }
+.schedule-section__head p { font-size: 1.05rem; max-width: 620px; margin-inline: auto; color: rgba(255,255,255,.8); }
 .schedule-card {
   display: flex;
   align-items: center;
