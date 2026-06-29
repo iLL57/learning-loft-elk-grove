@@ -160,7 +160,7 @@ em { font-style: italic; }
   gap: 1rem;
 }
 .nav__logo { display: flex; align-items: center; flex-shrink: 0; }
-.nav__logo-img { height: 62px; width: auto; display: block; }
+.nav__logo-img { height: 74px; width: auto; display: block; }
 .nav__links {
   display: flex;
   align-items: center;
