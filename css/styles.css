@@ -270,8 +270,7 @@ em { font-style: italic; }
   min-height: 680px;
   display: flex;
   align-items: center;
-  /* Placeholder warm dark — swap for background: url(...) center/cover when photo arrives */
-  background-color: #3D3428;
+  background: url('../images/home-hero-learning-table-right.png') center/cover no-repeat;
 }
 .hero-home__bg.photo-ph {
   border-radius: 0;
