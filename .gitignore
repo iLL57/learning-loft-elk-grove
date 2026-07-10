@@ -1,0 +1,22 @@
+# Supabase local CLI state — contains project ref and connection info
+supabase/.temp/
+
+# Environment variable files — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# macOS system files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+*.code-workspace
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node (if ever added)
+node_modules/
