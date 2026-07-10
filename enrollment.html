@@ -279,5 +279,54 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script>
+    const form = document.getElementById('enrollForm');
+    const successMsg = document.getElementById('successMsg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const required = form.querySelectorAll('[required]');
+      let valid = true;
+      required.forEach(f => {
+        f.style.borderColor = '';
+        if (!f.value.trim()) { f.style.borderColor = '#c0392b'; valid = false; }
+      });
+      if (!valid) return;
+
+      const btn = form.querySelector('.form-submit');
+      btn.textContent = 'Sending…';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('https://otmuflfpogtpkzqrclmm.supabase.co/functions/v1/submit-enrollment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            parentFirst: form.parentFirst.value.trim(),
+            parentLast:  form.parentLast.value.trim(),
+            email:       form.email.value.trim(),
+            phone:       form.phone.value.trim(),
+            childName:   form.childName.value.trim(),
+            childAge:    form.childAge.value.trim(),
+            howLong:     form.howLong.value,
+            hearAbout:   form.hearAbout.value,
+            interest:    form.interest.value,
+            message:     form.message.value.trim(),
+          }),
+        });
+
+        if (!res.ok) throw new Error('Server error');
+
+        form.style.display = 'none';
+        successMsg.classList.add('visible');
+
+      } catch (err) {
+        btn.textContent = 'Send My Interest Form →';
+        btn.disabled = false;
+        alert('Something went wrong — please try again or email us directly at info@thelearninglofteg.com');
+      }
+    });
+  </script>
 </body>
 </html>
