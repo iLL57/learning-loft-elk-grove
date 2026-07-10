@@ -36,33 +36,3 @@ const observer = new IntersectionObserver(
 );
 document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
-// Enrollment form
-const enrollForm = document.getElementById('enrollForm');
-const successMsg = document.getElementById('successMsg');
-
-if (enrollForm) {
-  enrollForm.addEventListener('submit', e => {
-    e.preventDefault();
-    // Basic validation
-    const required = enrollForm.querySelectorAll('[required]');
-    let valid = true;
-    required.forEach(field => {
-      field.style.borderColor = '';
-      if (!field.value.trim()) {
-        field.style.borderColor = '#c0392b';
-        valid = false;
-      }
-    });
-    if (!valid) return;
-
-    // Simulate submission
-    const submitBtn = enrollForm.querySelector('.form-submit');
-    submitBtn.textContent = 'Sending…';
-    submitBtn.disabled = true;
-
-    setTimeout(() => {
-      enrollForm.style.display = 'none';
-      if (successMsg) successMsg.classList.add('visible');
-    }, 1000);
-  });
-}
