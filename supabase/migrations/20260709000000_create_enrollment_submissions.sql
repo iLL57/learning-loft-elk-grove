@@ -32,3 +32,13 @@ create policy "No public inserts"
 
 -- Grant service_role full access (bypasses RLS but still needs table privileges)
 grant insert, select, update on public.enrollment_submissions to service_role;
+
+-- Grant authenticated users (admin) read and update access
+grant select, update on public.enrollment_submissions to authenticated;
+
+create policy "Authenticated users can update submissions"
+  on public.enrollment_submissions
+  for update
+  to authenticated
+  using (true)
+  with check (true);
