@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — The Learning Loft of Elk Grove</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="admin-body">
+
+  <!-- ── Login Screen ── -->
+  <div id="loginScreen" class="admin-login">
+    <div class="admin-login__card">
+      <img src="images/primary-logo-warm-web-transparent.png" alt="The Learning Loft" class="admin-login__logo">
+      <h2>Admin Login</h2>
+      <p>Sign in to manage enrollments and families.</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        <p id="loginError" class="admin-error" style="display:none"></p>
+        <button type="submit" class="form-submit">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Admin Dashboard ── -->
+  <div id="adminApp" style="display:none">
+
+    <!-- Top Bar -->
+    <header class="admin-topbar">
+      <div class="admin-topbar__inner">
+        <div class="admin-topbar__brand">
+          <img src="images/horizontal-nav-logo-soft-web-transparent.png" alt="The Learning Loft" class="admin-topbar__logo">
+          <span class="admin-topbar__badge">Admin</span>
+        </div>
+        <div class="admin-topbar__right">
+          <span id="adminUserEmail" class="admin-topbar__user"></span>
+          <button id="logoutBtn" class="admin-topbar__logout">Sign Out</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Tab Nav -->
+    <div class="admin-tabs">
+      <div class="admin-tabs__inner">
+        <button class="admin-tab active" data-tab="submissions">Submissions</button>
+        <button class="admin-tab" data-tab="families">Enrolled Families</button>
+        <button class="admin-tab" data-tab="leads">Leads &amp; Outreach</button>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <main class="admin-main">
+
+      <!-- ── Submissions Tab ── -->
+      <div id="tab-submissions" class="admin-panel">
+        <div class="admin-stats">
+          <div class="admin-stat-card">
+            <span class="admin-stat-card__val" id="stat-total">—</span>
+            <span class="admin-stat-card__label">Total</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-stat-card__val" id="stat-new">—</span>
+            <span class="admin-stat-card__label">New</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-stat-card__val" id="stat-contacted">—</span>
+            <span class="admin-stat-card__label">Contacted</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-stat-card__val" id="stat-enrolled">—</span>
+            <span class="admin-stat-card__label">Enrolled</span>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card__head"><h3>All Submissions</h3></div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Parent</th>
+                  <th>Email</th>
+                  <th>Child(ren)</th>
+                  <th>Age(s)</th>
+                  <th>Status</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="submissionsBody">
+                <tr><td colspan="7" class="admin-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Enrolled Families Tab ── -->
+      <div id="tab-families" class="admin-panel" style="display:none">
+        <div class="admin-panel-head">
+          <h3>Enrolled Families</h3>
+          <button class="btn btn--green" id="addFamilyBtn">+ Add Family</button>
+        </div>
+        <div class="admin-card">
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Family</th>
+                  <th>Email</th>
+                  <th>Child(ren)</th>
+                  <th>Enrolled</th>
+                  <th>Payment</th>
+                  <th>Next Due</th>
+                  <th>Notes</th>
+                  <th>Edit</th>
+                </tr>
+              </thead>
+              <tbody id="familiesBody">
+                <tr><td colspan="8" class="admin-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Leads Tab ── -->
+      <div id="tab-leads" class="admin-panel" style="display:none">
+        <div class="admin-panel-head">
+          <h3>Leads &amp; Outreach Ideas</h3>
+          <button class="btn btn--green" id="addLeadBtn">+ Add Idea</button>
+        </div>
+        <div id="leadsGrid" class="leads-grid">
+          <p class="admin-empty">Loading…</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ── Submission Detail Modal ── -->
+  <div id="submissionModal" class="admin-modal" style="display:none">
+    <div class="admin-modal__overlay" id="subModalOverlay"></div>
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="closeSubModal">&times;</button>
+      <h3 id="modalParentName"></h3>
+      <div id="modalBody" class="admin-modal__body"></div>
+    </div>
+  </div>
+
+  <!-- ── Family Modal ── -->
+  <div id="familyModal" class="admin-modal" style="display:none">
+    <div class="admin-modal__overlay" id="familyModalOverlay"></div>
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="closeFamilyModal">&times;</button>
+      <h3 id="familyModalTitle">Add Enrolled Family</h3>
+      <form id="familyForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Parent First Name <span class="req">*</span></label>
+            <input type="text" name="parentFirst" required />
+          </div>
+          <div class="form-group">
+            <label>Parent Last Name <span class="req">*</span></label>
+            <input type="text" name="parentLast" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email <span class="req">*</span></label>
+            <input type="email" name="email" required />
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" name="phone" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Child Name(s) <span class="req">*</span></label>
+            <input type="text" name="childName" required />
+          </div>
+          <div class="form-group">
+            <label>Age(s) <span class="req">*</span></label>
+            <input type="text" name="childAge" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Enrollment Date</label>
+            <input type="date" name="enrollmentDate" />
+          </div>
+          <div class="form-group">
+            <label>Next Payment Due</label>
+            <input type="date" name="nextPaymentDue" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Payment Status</label>
+            <select name="paymentStatus">
+              <option value="current">Current</option>
+              <option value="pending">Pending</option>
+              <option value="overdue">Overdue</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Monthly Rate ($)</label>
+            <input type="number" name="monthlyRate" placeholder="0.00" step="0.01" min="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea name="notes" rows="3"></textarea>
+        </div>
+        <input type="hidden" name="editId" />
+        <button type="submit" class="form-submit">Save Family</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Lead Modal ── -->
+  <div id="leadModal" class="admin-modal" style="display:none">
+    <div class="admin-modal__overlay" id="leadModalOverlay"></div>
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="closeLeadModal">&times;</button>
+      <h3 id="leadModalTitle">Add Outreach Idea</h3>
+      <form id="leadForm">
+        <div class="form-group">
+          <label>Title <span class="req">*</span></label>
+          <input type="text" name="title" required placeholder="e.g. Post in Elk Grove Moms Facebook group" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Channel</label>
+            <select name="channel">
+              <option value="">Select channel</option>
+              <option>Instagram</option>
+              <option>Facebook</option>
+              <option>Word of Mouth</option>
+              <option>Flyer / Poster</option>
+              <option>Local Event</option>
+              <option>Homeschool Co-op</option>
+              <option>Email</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select name="status">
+              <option value="idea">Idea</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="paused">Paused</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" rows="3" placeholder="What's the plan?"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea name="notes" rows="2" placeholder="Any follow-up notes…"></textarea>
+        </div>
+        <input type="hidden" name="editId" />
+        <button type="submit" class="form-submit">Save Idea</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const { createClient } = window.supabase;
+    const sb = createClient(
+      'https://otmuflfpogtpkzqrclmm.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90bXVmbGZwb2d0cGt6cXJjbG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MzA1NTQsImV4cCI6MjA5OTIwNjU1NH0._FBPP-VskInqSNHaUQLOZmwWWcFf1ERHwMCB5_KcJ0Y'
+    );
+
+    // ── Auth ──
+    sb.auth.onAuthStateChange((_, session) => {
+      if (session) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminApp').style.display = 'block';
+        document.getElementById('adminUserEmail').textContent = session.user.email;
+        loadAll();
+      } else {
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('adminApp').style.display = 'none';
+      }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const err = document.getElementById('loginError');
+      btn.textContent = 'Signing in…'; btn.disabled = true;
+      err.style.display = 'none';
+      const { error } = await sb.auth.signInWithPassword({
+        email: document.getElementById('loginEmail').value.trim(),
+        password: document.getElementById('loginPassword').value,
+      });
+      if (error) {
+        err.textContent = 'Invalid email or password.';
+        err.style.display = 'block';
+        btn.textContent = 'Sign In'; btn.disabled = false;
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => sb.auth.signOut());
+
+    // ── Tabs ──
+    document.querySelectorAll('.admin-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.admin-panel').forEach(p => p.style.display = 'none');
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
+      });
+    });
+
+    // ── Helpers ──
+    function fmt(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    function badge(cls, label) {
+      return `<span class="badge ${cls}">${label}</span>`;
+    }
+    function statusBadge(s) {
+      return { new: badge('badge--blue','New'), contacted: badge('badge--gold','Contacted'), enrolled: badge('badge--green','Enrolled'), declined: badge('badge--muted','Declined') }[s] || badge('badge--muted', s);
+    }
+    function payBadge(s) {
+      return { current: badge('badge--green','Current'), pending: badge('badge--gold','Pending'), overdue: badge('badge--red','Overdue') }[s] || badge('badge--muted', s);
+    }
+    function leadBadge(s) {
+      return { idea: badge('badge--blue','Idea'), in_progress: badge('badge--gold','In Progress'), completed: badge('badge--green','Completed'), paused: badge('badge--muted','Paused') }[s] || badge('badge--muted', s);
+    }
+
+    function loadAll() { loadSubmissions(); loadFamilies(); loadLeads(); }
+
+    // ── Submissions ──
+    let allSubs = [];
+    async function loadSubmissions() {
+      const { data } = await sb.from('enrollment_submissions').select('*').order('created_at', { ascending: false });
+      allSubs = data || [];
+      const body = document.getElementById('submissionsBody');
+      document.getElementById('stat-total').textContent     = allSubs.length;
+      document.getElementById('stat-new').textContent       = allSubs.filter(r => r.status === 'new').length;
+      document.getElementById('stat-contacted').textContent = allSubs.filter(r => r.status === 'contacted').length;
+      document.getElementById('stat-enrolled').textContent  = allSubs.filter(r => r.status === 'enrolled').length;
+
+      if (!allSubs.length) {
+        body.innerHTML = '<tr><td colspan="7" class="admin-empty">No submissions yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = allSubs.map(r => `
+        <tr>
+          <td style="white-space:nowrap">${fmt(r.created_at)}</td>
+          <td><strong>${r.parent_first} ${r.parent_last}</strong></td>
+          <td><a href="mailto:${r.email}">${r.email}</a></td>
+          <td>${r.child_name || '—'}</td>
+          <td>${r.child_age || '—'}</td>
+          <td>
+            <select class="status-select" data-id="${r.id}">
+              <option value="new"       ${r.status==='new'       ?'selected':''}>New</option>
+              <option value="contacted" ${r.status==='contacted' ?'selected':''}>Contacted</option>
+              <option value="enrolled"  ${r.status==='enrolled'  ?'selected':''}>Enrolled</option>
+              <option value="declined"  ${r.status==='declined'  ?'selected':''}>Declined</option>
+            </select>
+          </td>
+          <td><button class="admin-link view-sub" data-id="${r.id}">View</button></td>
+        </tr>
+      `).join('');
+
+      body.querySelectorAll('.status-select').forEach(sel => {
+        sel.addEventListener('change', async () => {
+          await sb.from('enrollment_submissions').update({ status: sel.value }).eq('id', sel.dataset.id);
+          loadSubmissions();
+        });
+      });
+      body.querySelectorAll('.view-sub').forEach(btn => {
+        btn.addEventListener('click', () => openSubModal(allSubs.find(s => s.id === btn.dataset.id)));
+      });
+    }
+
+    function openSubModal(r) {
+      document.getElementById('modalParentName').textContent = `${r.parent_first} ${r.parent_last}`;
+      document.getElementById('modalBody').innerHTML = `
+        <div class="admin-detail-grid">
+          <div><strong>Email</strong><p><a href="mailto:${r.email}">${r.email}</a></p></div>
+          <div><strong>Phone</strong><p>${r.phone || '—'}</p></div>
+          <div><strong>Child(ren)</strong><p>${r.child_name || '—'}</p></div>
+          <div><strong>Age(s)</strong><p>${r.child_age || '—'}</p></div>
+          <div><strong>Homeschooling</strong><p>${r.how_long || '—'}</p></div>
+          <div><strong>Heard About Us</strong><p>${r.hear_about || '—'}</p></div>
+          <div><strong>Excited About</strong><p>${r.interest || '—'}</p></div>
+          <div><strong>Submitted</strong><p>${fmt(r.created_at)}</p></div>
+        </div>
+        ${r.message ? `<div style="margin-top:1rem;"><strong style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);">Message</strong><p style="margin-top:.3rem;font-size:.92rem;color:var(--text-body);">${r.message}</p></div>` : ''}
+        <div style="margin-top:1.25rem;"><strong style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);">Status</strong><div style="margin-top:.4rem;">${statusBadge(r.status)}</div></div>
+      `;
+      document.getElementById('submissionModal').style.display = 'flex';
+    }
+
+    document.getElementById('closeSubModal').addEventListener('click', () => document.getElementById('submissionModal').style.display = 'none');
+    document.getElementById('subModalOverlay').addEventListener('click', () => document.getElementById('submissionModal').style.display = 'none');
+
+    // ── Enrolled Families ──
+    let allFamilies = [];
+    async function loadFamilies() {
+      const { data } = await sb.from('enrolled_families').select('*').order('created_at', { ascending: false });
+      allFamilies = data || [];
+      const body = document.getElementById('familiesBody');
+      if (!allFamilies.length) {
+        body.innerHTML = '<tr><td colspan="8" class="admin-empty">No enrolled families yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = allFamilies.map(r => `
+        <tr>
+          <td><strong>${r.parent_first} ${r.parent_last}</strong></td>
+          <td><a href="mailto:${r.email}">${r.email}</a></td>
+          <td>${r.child_name || '—'}</td>
+          <td style="white-space:nowrap">${fmt(r.enrollment_date)}</td>
+          <td>${payBadge(r.payment_status)}</td>
+          <td style="white-space:nowrap">${fmt(r.next_payment_due)}</td>
+          <td class="notes-cell">${r.notes || '—'}</td>
+          <td><button class="admin-link edit-family" data-id="${r.id}">Edit</button></td>
+        </tr>
+      `).join('');
+      body.querySelectorAll('.edit-family').forEach(btn => {
+        btn.addEventListener('click', () => openFamilyModal(allFamilies.find(f => f.id === btn.dataset.id)));
+      });
+    }
+
+    document.getElementById('addFamilyBtn').addEventListener('click', () => openFamilyModal(null));
+
+    function openFamilyModal(fam) {
+      const form = document.getElementById('familyForm');
+      document.getElementById('familyModalTitle').textContent = fam ? 'Edit Family' : 'Add Enrolled Family';
+      form.reset();
+      if (fam) {
+        form.parentFirst.value    = fam.parent_first || '';
+        form.parentLast.value     = fam.parent_last  || '';
+        form.email.value          = fam.email        || '';
+        form.phone.value          = fam.phone        || '';
+        form.childName.value      = fam.child_name   || '';
+        form.childAge.value       = fam.child_age    || '';
+        form.enrollmentDate.value = fam.enrollment_date   || '';
+        form.nextPaymentDue.value = fam.next_payment_due  || '';
+        form.paymentStatus.value  = fam.payment_status    || 'current';
+        form.monthlyRate.value    = fam.monthly_rate      || '';
+        form.notes.value          = fam.notes             || '';
+        form.editId.value         = fam.id;
+      } else {
+        form.editId.value = '';
+      }
+      document.getElementById('familyModal').style.display = 'flex';
+    }
+
+    document.getElementById('closeFamilyModal').addEventListener('click',  () => document.getElementById('familyModal').style.display = 'none');
+    document.getElementById('familyModalOverlay').addEventListener('click', () => document.getElementById('familyModal').style.display = 'none');
+
+    document.getElementById('familyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      const btn = f.querySelector('button[type="submit"]');
+      btn.textContent = 'Saving…'; btn.disabled = true;
+      const payload = {
+        parent_first:    f.parentFirst.value.trim(),
+        parent_last:     f.parentLast.value.trim(),
+        email:           f.email.value.trim(),
+        phone:           f.phone.value.trim()         || null,
+        child_name:      f.childName.value.trim(),
+        child_age:       f.childAge.value.trim(),
+        enrollment_date: f.enrollmentDate.value       || null,
+        next_payment_due:f.nextPaymentDue.value       || null,
+        payment_status:  f.paymentStatus.value,
+        monthly_rate:    f.monthlyRate.value ? parseFloat(f.monthlyRate.value) : null,
+        notes:           f.notes.value.trim()         || null,
+      };
+      const id = f.editId.value;
+      if (id) { await sb.from('enrolled_families').update(payload).eq('id', id); }
+      else     { await sb.from('enrolled_families').insert(payload); }
+      document.getElementById('familyModal').style.display = 'none';
+      btn.textContent = 'Save Family'; btn.disabled = false;
+      loadFamilies();
+    });
+
+    // ── Leads ──
+    let allLeads = [];
+    async function loadLeads() {
+      const { data } = await sb.from('leads').select('*').order('created_at', { ascending: false });
+      allLeads = data || [];
+      const grid = document.getElementById('leadsGrid');
+      if (!allLeads.length) {
+        grid.innerHTML = '<p class="admin-empty" style="grid-column:1/-1">No leads yet — add your first outreach idea!</p>';
+        return;
+      }
+      grid.innerHTML = allLeads.map(r => `
+        <div class="lead-card">
+          <div class="lead-card__head">
+            <div>
+              <p class="lead-card__title">${r.title}</p>
+              ${r.channel ? `<p class="lead-card__channel">${r.channel}</p>` : ''}
+            </div>
+            ${leadBadge(r.status)}
+          </div>
+          ${r.description ? `<p class="lead-card__desc">${r.description}</p>` : ''}
+          ${r.notes       ? `<p class="lead-card__notes">${r.notes}</p>`       : ''}
+          <div class="lead-card__actions"><button class="admin-link edit-lead" data-id="${r.id}">Edit</button></div>
+        </div>
+      `).join('');
+      grid.querySelectorAll('.edit-lead').forEach(btn => {
+        btn.addEventListener('click', () => openLeadModal(allLeads.find(l => l.id === btn.dataset.id)));
+      });
+    }
+
+    document.getElementById('addLeadBtn').addEventListener('click', () => openLeadModal(null));
+
+    function openLeadModal(lead) {
+      const form = document.getElementById('leadForm');
+      document.getElementById('leadModalTitle').textContent = lead ? 'Edit Idea' : 'Add Outreach Idea';
+      form.reset();
+      if (lead) {
+        form.title.value       = lead.title       || '';
+        form.channel.value     = lead.channel     || '';
+        form.status.value      = lead.status      || 'idea';
+        form.description.value = lead.description || '';
+        form.notes.value       = lead.notes       || '';
+        form.editId.value      = lead.id;
+      } else {
+        form.editId.value = '';
+      }
+      document.getElementById('leadModal').style.display = 'flex';
+    }
+
+    document.getElementById('closeLeadModal').addEventListener('click',  () => document.getElementById('leadModal').style.display = 'none');
+    document.getElementById('leadModalOverlay').addEventListener('click', () => document.getElementById('leadModal').style.display = 'none');
+
+    document.getElementById('leadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      const btn = f.querySelector('button[type="submit"]');
+      btn.textContent = 'Saving…'; btn.disabled = true;
+      const payload = {
+        title:       f.title.value.trim(),
+        channel:     f.channel.value     || null,
+        status:      f.status.value,
+        description: f.description.value.trim() || null,
+        notes:       f.notes.value.trim()       || null,
+      };
+      const id = f.editId.value;
+      if (id) { await sb.from('leads').update(payload).eq('id', id); }
+      else     { await sb.from('leads').insert(payload); }
+      document.getElementById('leadModal').style.display = 'none';
+      btn.textContent = 'Save Idea'; btn.disabled = false;
+      loadLeads();
+    });
+  </script>
+</body>
+</html>
