@@ -6,6 +6,27 @@
   <title>Enrollment Interest — The Learning Loft of Elk Grove</title>
   <meta name="description" content="Interested in joining The Learning Loft of Elk Grove? Fill out our interest form and we'll be in touch to connect your family with our community." />
   <link rel="stylesheet" href="css/styles.css" />
+  <script>
+    function addChild() {
+      const list = document.getElementById('childrenList');
+      const row = document.createElement('div');
+      row.className = 'form-row child-row';
+      row.innerHTML = `
+        <div class="form-group">
+          <label>Child's Name <span class="req">*</span></label>
+          <input type="text" name="childName[]" placeholder="e.g. Noah" required />
+        </div>
+        <div class="form-group" style="display:flex;gap:.5rem;align-items:flex-end;">
+          <div style="flex:1;max-width:120px;">
+            <label>Age <span class="req">*</span></label>
+            <input type="text" name="childAge[]" placeholder="e.g. 10" required />
+          </div>
+          <button type="button" onclick="this.closest('.child-row').remove()" style="margin-bottom:.1rem;background:none;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer;padding:.3rem;" aria-label="Remove child">&times;</button>
+        </div>
+      `;
+      list.appendChild(row);
+    }
+  </script>
 </head>
 <body>
 
@@ -139,16 +160,21 @@
               <!-- Child Info -->
               <h4 style="font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:1rem; margin-top:.5rem;">Your Child(ren)</h4>
 
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="childName">Child's Name(s) <span class="req">*</span></label>
-                  <input type="text" id="childName" name="childName" placeholder="e.g. Lily, Noah" required />
-                </div>
-                <div class="form-group">
-                  <label for="childAge">Age(s) <span class="req">*</span></label>
-                  <input type="text" id="childAge" name="childAge" placeholder="e.g. 8, 11" required />
+              <div id="childrenList">
+                <div class="form-row child-row">
+                  <div class="form-group">
+                    <label>Child's Name <span class="req">*</span></label>
+                    <input type="text" name="childName[]" placeholder="e.g. Lily" required />
+                  </div>
+                  <div class="form-group">
+                    <label>Age <span class="req">*</span></label>
+                    <input type="text" name="childAge[]" placeholder="e.g. 8" required style="max-width:120px" />
+                  </div>
                 </div>
               </div>
+              <button type="button" onclick="addChild()" style="display:inline-flex;align-items:center;gap:.4rem;margin-bottom:1.25rem;background:none;border:1px dashed var(--border);border-radius:var(--r-sm);padding:.45rem 1rem;font-family:var(--font-body);font-size:.85rem;font-weight:600;color:var(--green);cursor:pointer;transition:border-color .18s,color .18s;">
+                <span style="font-size:1.1rem;line-height:1;">+</span> Add another child
+              </button>
 
               <div class="form-group">
                 <label for="howLong">How long have you been homeschooling?</label>
@@ -294,6 +320,12 @@
       });
       if (!valid) return;
 
+      // Collect children
+      const nameInputs = form.querySelectorAll('[name="childName[]"]');
+      const ageInputs  = form.querySelectorAll('[name="childAge[]"]');
+      const childName  = Array.from(nameInputs).map(i => i.value.trim()).join(', ');
+      const childAge   = Array.from(ageInputs).map(i => i.value.trim()).join(', ');
+
       const btn = form.querySelector('.form-submit');
       btn.textContent = 'Sending…';
       btn.disabled = true;
@@ -307,8 +339,8 @@
             parentLast:  form.parentLast.value.trim(),
             email:       form.email.value.trim(),
             phone:       form.phone.value.trim(),
-            childName:   form.childName.value.trim(),
-            childAge:    form.childAge.value.trim(),
+            childName,
+            childAge,
             howLong:     form.howLong.value,
             hearAbout:   form.hearAbout.value,
             interest:    form.interest.value,
