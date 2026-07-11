@@ -124,6 +124,7 @@ Copy nav and footer from an existing page — don't rewrite them.
 - New database tables → new migration file with timestamp prefix (`YYYYMMDDHHMMSS_description.sql`). Never edit existing migration files.
 
 ## Pending TODOs
+- [ ] Research a communication platform so volunteers can connect with their students' parents — do this after the website is up and running
 - [ ] Set up custom sending domain on Resend (e.g. noreply@thelearninglofteg.com) so enrollment notification emails don't come from onboarding@resend.dev and don't land in spam — owner has Google Workspace so DNS records are accessible
 - [ ] Delete test submission (id: eaea48ce-9367-482d-9a94-a7064af21fec) from enrollment_submissions table — do this from the admin page once confirmed working in production
 - [ ] Change admin account passwords from temp values (LoftDev#2026 / LoftOwner#2026) — do via Supabase dashboard → Authentication → Users
