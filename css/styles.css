@@ -594,7 +594,7 @@ em { font-style: italic; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 5rem;
-  align-items: center;
+  align-items: start;
 }
 .cta-home__text h2 {
   font-size: clamp(1.8rem, 3.2vw, 2.7rem);
