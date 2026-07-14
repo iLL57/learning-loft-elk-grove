@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "The Learning Loft <onboarding@resend.dev>",
+          from: "The Learning Loft <enrollments@thelearninglofteg.com>",
           to: notifyEmail,
           subject: `New Enrollment Inquiry — ${parentFirst} ${parentLast}`,
           html: `
