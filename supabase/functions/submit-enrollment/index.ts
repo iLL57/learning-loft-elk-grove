@@ -57,34 +57,38 @@ Deno.serve(async (req) => {
     const notifyEmail = Deno.env.get("NOTIFY_EMAIL");
 
     if (resendKey && notifyEmail) {
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "The Learning Loft <enrollments@thelearninglofteg.com>",
-          to: notifyEmail,
-          subject: `New Enrollment Inquiry — ${parentFirst} ${parentLast}`,
-          html: `
-            <h2>New Enrollment Interest Form</h2>
-            <p><strong>Parent:</strong> ${parentFirst} ${parentLast}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
-            <hr>
-            <p><strong>Child(ren):</strong> ${childName}</p>
-            <p><strong>Age(s):</strong> ${childAge}</p>
-            <p><strong>Homeschooling for:</strong> ${howLong || "Not specified"}</p>
-            <hr>
-            <p><strong>How they heard about us:</strong> ${hearAbout || "Not specified"}</p>
-            <p><strong>Most excited about:</strong> ${interest || "Not specified"}</p>
-            <p><strong>Message:</strong> ${message || "None"}</p>
-            <hr>
-            <p style="color:#888; font-size:12px;">Submitted via the Learning Loft website enrollment form.</p>
-          `,
-        }),
-      });
+      try {
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "The Learning Loft <enrollments@thelearninglofteg.com>",
+            to: notifyEmail,
+            subject: `New Enrollment Inquiry — ${parentFirst} ${parentLast}`,
+            html: `
+              <h2>New Enrollment Interest Form</h2>
+              <p><strong>Parent:</strong> ${parentFirst} ${parentLast}</p>
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
+              <hr>
+              <p><strong>Child(ren):</strong> ${childName}</p>
+              <p><strong>Age(s):</strong> ${childAge}</p>
+              <p><strong>Homeschooling for:</strong> ${howLong || "Not specified"}</p>
+              <hr>
+              <p><strong>How they heard about us:</strong> ${hearAbout || "Not specified"}</p>
+              <p><strong>Most excited about:</strong> ${interest || "Not specified"}</p>
+              <p><strong>Message:</strong> ${message || "None"}</p>
+              <hr>
+              <p style="color:#888; font-size:12px;">Submitted via the Learning Loft website enrollment form.</p>
+            `,
+          }),
+        });
+      } catch (emailErr) {
+        console.error("Resend notification failed:", emailErr);
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), {
