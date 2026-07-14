@@ -139,6 +139,14 @@ em { font-style: italic; }
   border: 2px solid rgba(255,255,255,.55);
 }
 .btn--outline-light:hover { background: rgba(255,255,255,.12); }
+.btn--disabled {
+  background: var(--parchment-card);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  cursor: default;
+  pointer-events: none;
+}
+.btn--disabled:hover { transform: none; box-shadow: none; }
 .btn-group { display: flex; flex-wrap: wrap; gap: 1rem; }
 
 /* ── Navigation ── */
