@@ -128,7 +128,6 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [ ] Change admin account passwords from temp values (LoftDev#2026 / LoftOwner#2026) — do via Supabase dashboard → Authentication → Users
 - [ ] Owner (info@thelearninglofteg.com) to create a personal Google Workspace email for day-to-day use; keep info@ for site/client contact
 - [ ] Re-enable "Enroll Now" / "Express Interest" / "How to Enroll" links sitewide once enrollment reopens (currently disabled on nav, footer, About, and Program pages)
-- [ ] `about-section-refresh` branch has the owner-approved About page content refresh, not yet merged to main
 - [ ] Program page's Enrichment Rotations cards still need real course descriptions from the owner for Speak & Story/Canvas & Curtain and Lead & Launch (current bullet lists/tags are placeholders left over from the old Art Fusion/Life Skills copy)
 
 ## Completed
@@ -142,3 +141,4 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [x] Program page reworked to match owner's official schedule: renamed rotations (Roots & Research, Lead & Launch, Speak & Story/Canvas & Curtain), clarified Word & World and Closing Circle as shared blocks rather than rotations, removed grade-band references in favor of age-group language, added a Days/Hours/Location/How-to-Enroll info grid with a generated photo
 - [x] Re-enabled Program nav link on the homepage placeholder (`index.html`) to point to the reworked program page
 - [x] Real homepage content (from `homepage-copy-refresh` branch, ~11 owner-requested content items) merged to main, replacing the temporary "Under Construction" placeholder; Enroll Now links disabled sitewide on the restored homepage to match the rest of the site
+- [x] About page content refresh (from `about-section-refresh` branch, owner-approved: reordered Our Story above Mission, green hero, new hero subtext, updated mission paragraph, repurposed mission cards with new icons, new Core Values list, real family photo) merged to main
