@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
 
     const displayName = name || [firstName, lastName].filter(Boolean).join(" ");
 
-    if (!displayName || !email || !message) {
+    if (!displayName || !email) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
               ${childAge ? `<p><strong>Child's age(s):</strong> ${childAge}</p>` : ""}
               ${subject ? `<p><strong>Topic:</strong> ${subject}</p>` : ""}
               <hr>
-              <p><strong>Message:</strong> ${message}</p>
+              <p><strong>Message:</strong> ${message || "None"}</p>
               <hr>
               <p style="color:#888; font-size:12px;">Submitted via the Learning Loft website contact form.</p>
             `,
