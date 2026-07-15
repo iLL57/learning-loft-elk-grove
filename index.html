@@ -339,7 +339,7 @@
     const ctaForm = document.getElementById('ctaForm');
     const ctaSuccess = document.getElementById('ctaSuccessMsg');
     if (ctaForm) {
-      ctaForm.addEventListener('submit', e => {
+      ctaForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const required = ctaForm.querySelectorAll('[required]');
         let valid = true;
@@ -348,13 +348,41 @@
           if (!f.value.trim()) { f.style.borderColor = '#c0392b'; valid = false; }
         });
         if (!valid) return;
+
         const btn = ctaForm.querySelector('.cta-submit');
         btn.textContent = 'Sending…';
         btn.disabled = true;
-        setTimeout(() => {
+
+        try {
+          const res = await fetch('https://otmuflfpogtpkzqrclmm.supabase.co/functions/v1/submit-inquiry', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90bXVmbGZwb2d0cGt6cXJjbG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MzA1NTQsImV4cCI6MjA5OTIwNjU1NH0._FBPP-VskInqSNHaUQLOZmwWWcFf1ERHwMCB5_KcJ0Y',
+            },
+            body: JSON.stringify({
+              name:     ctaForm.name.value.trim(),
+              email:    ctaForm.email.value.trim(),
+              childAge: ctaForm.childAge.value.trim(),
+              message:  ctaForm.message.value.trim(),
+            }),
+          });
+
+          if (!res.ok) {
+            const body = await res.text();
+            console.error('HTTP', res.status, body);
+            throw new Error('Server error');
+          }
+
           ctaForm.style.display = 'none';
           if (ctaSuccess) ctaSuccess.classList.add('visible');
-        }, 1000);
+
+        } catch (err) {
+          console.error('Submit error:', err);
+          btn.textContent = 'Send Inquiry';
+          btn.disabled = false;
+          alert('Something went wrong — please try again or email us directly at info@thelearninglofteg.com');
+        }
       });
     }
   </script>
