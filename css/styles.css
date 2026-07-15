@@ -139,6 +139,14 @@ em { font-style: italic; }
   border: 2px solid rgba(255,255,255,.55);
 }
 .btn--outline-light:hover { background: rgba(255,255,255,.12); }
+.btn--disabled {
+  background: var(--parchment-card);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  cursor: default;
+  pointer-events: none;
+}
+.btn--disabled:hover { transform: none; box-shadow: none; }
 .btn-group { display: flex; flex-wrap: wrap; gap: 1rem; }
 
 /* ── Navigation ── */
@@ -586,7 +594,7 @@ em { font-style: italic; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 5rem;
-  align-items: center;
+  align-items: start;
 }
 .cta-home__text h2 {
   font-size: clamp(1.8rem, 3.2vw, 2.7rem);
@@ -1036,7 +1044,7 @@ em { font-style: italic; }
   flex-shrink: 0;
 }
 .contact-info-item__icon svg { width: 20px; height: 20px; color: var(--green); }
-.contact-info-item h4 { font-size: .88rem; font-weight: 700; color: var(--text); margin-bottom: .2rem; }
+.contact-info-item h4 { font-family: var(--font-body); font-size: .88rem; font-weight: 700; color: var(--text); margin-bottom: .2rem; }
 .contact-info-item p  { font-size: .9rem; color: var(--text-body); }
 
 /* ── Footer ── */
