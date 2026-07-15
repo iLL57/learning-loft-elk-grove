@@ -732,25 +732,6 @@ em { font-style: italic; }
 .schedule-table tbody tr:nth-child(odd)  { background: var(--white-warm); }
 .time-cell { font-weight: 700; color: var(--green); white-space: nowrap; }
 
-/* ── Room Grid ── */
-.room-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; margin-top: 2rem; }
-.room-card { border-radius: var(--r-md); overflow: hidden; box-shadow: var(--shadow-sm); }
-.room-card__header {
-  padding: 1rem 1.25rem;
-  font-weight: 700;
-  font-size: .8rem;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--white-warm);
-}
-.room-card__body { padding: 1.25rem; background: var(--white-warm); }
-.room-card__body h4 { font-size: 1rem; color: var(--text); margin-bottom: .25rem; }
-.room-card__body p  { font-size: .88rem; }
-.room-card--a .room-card__header { background: var(--green); }
-.room-card--b .room-card__header { background: #3f4f37; }
-.room-card--c .room-card__header { background: var(--terracotta); }
-@media (max-width: 680px) { .room-grid { grid-template-columns: 1fr; } }
-
 /* ── Rotation Cards ── */
 .rotation-card {
   border-radius: var(--r-md);
@@ -1177,7 +1158,6 @@ em { font-style: italic; }
   .hero-stat       { border-right: none; border-bottom: 1px solid var(--border); padding: 1rem; }
   .hero-stat:last-child { border-bottom: none; }
   .cta-home__form-wrap { padding: 1.75rem 1.25rem; }
-  .room-grid       { grid-template-columns: 1fr; }
 }
 
 /* ═══════════════════════════════════════
