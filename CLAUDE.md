@@ -128,7 +128,6 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [ ] Change admin account passwords from temp values (LoftDev#2026 / LoftOwner#2026) — do via Supabase dashboard → Authentication → Users
 - [ ] Owner (info@thelearninglofteg.com) to create a personal Google Workspace email for day-to-day use; keep info@ for site/client contact
 - [ ] Re-enable "Enroll Now" / "Express Interest" / "How to Enroll" links sitewide once enrollment reopens (currently disabled on nav, footer, About, and Program pages)
-- [ ] Homepage is still the temporary "Under Construction" placeholder (real homepage content preserved in git history, tagged `pre-under-construction`, finished on `homepage-copy-refresh` branch) — swap it back in once the owner finishes reviewing content changes
 - [ ] `about-section-refresh` branch has the owner-approved About page content refresh, not yet merged to main
 - [ ] Program page's Enrichment Rotations cards still need real course descriptions from the owner for Speak & Story/Canvas & Curtain and Lead & Launch (current bullet lists/tags are placeholders left over from the old Art Fusion/Life Skills copy)
 
@@ -142,3 +141,4 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [x] Custom Resend sending domain (thelearninglofteg.com) verified via Squarespace DNS; enrollment notifications now send from enrollments@thelearninglofteg.com instead of onboarding@resend.dev
 - [x] Program page reworked to match owner's official schedule: renamed rotations (Roots & Research, Lead & Launch, Speak & Story/Canvas & Curtain), clarified Word & World and Closing Circle as shared blocks rather than rotations, removed grade-band references in favor of age-group language, added a Days/Hours/Location/How-to-Enroll info grid with a generated photo
 - [x] Re-enabled Program nav link on the homepage placeholder (`index.html`) to point to the reworked program page
+- [x] Real homepage content (from `homepage-copy-refresh` branch, ~11 owner-requested content items) merged to main, replacing the temporary "Under Construction" placeholder; Enroll Now links disabled sitewide on the restored homepage to match the rest of the site
