@@ -20,3 +20,6 @@ npm-debug.log*
 
 # Node (if ever added)
 node_modules/
+
+# Internal working notes — not for public repo
+FEEDBACK_QUESTIONS.md
