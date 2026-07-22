@@ -370,7 +370,7 @@
       body.innerHTML = allSubs.map(r => `
         <tr>
           <td style="white-space:nowrap">${fmt(r.created_at)}</td>
-          <td><strong>${r.parent_first} ${r.parent_last}</strong></td>
+          <td><strong>${r.parent_name}</strong></td>
           <td><a href="mailto:${r.email}">${r.email}</a></td>
           <td>${r.child_name || '—'}</td>
           <td>${r.child_age || '—'}</td>
@@ -398,16 +398,18 @@
     }
 
     function openSubModal(r) {
-      document.getElementById('modalParentName').textContent = `${r.parent_first} ${r.parent_last}`;
+      document.getElementById('modalParentName').textContent = r.parent_name;
       document.getElementById('modalBody').innerHTML = `
         <div class="admin-detail-grid">
           <div><strong>Email</strong><p><a href="mailto:${r.email}">${r.email}</a></p></div>
           <div><strong>Phone</strong><p>${r.phone || '—'}</p></div>
           <div><strong>Child(ren)</strong><p>${r.child_name || '—'}</p></div>
           <div><strong>Age(s)</strong><p>${r.child_age || '—'}</p></div>
-          <div><strong>Homeschooling</strong><p>${r.how_long || '—'}</p></div>
+          <div><strong>Days Interested</strong><p>${r.days_interest || '—'}</p></div>
+          <div><strong>Day Preference</strong><p>${r.day_preference || '—'}</p></div>
+          <div><strong>Tuition Exchange</strong><p>${r.tuition_exchange || '—'}</p></div>
+          <div><strong>Charter / Independent Study</strong><p>${r.charter_program || '—'}</p></div>
           <div><strong>Heard About Us</strong><p>${r.hear_about || '—'}</p></div>
-          <div><strong>Excited About</strong><p>${r.interest || '—'}</p></div>
           <div><strong>Submitted</strong><p>${fmt(r.created_at)}</p></div>
         </div>
         ${r.message ? `<div style="margin-top:1rem;"><strong style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);">Message</strong><p style="margin-top:.3rem;font-size:.92rem;color:var(--text-body);">${r.message}</p></div>` : ''}

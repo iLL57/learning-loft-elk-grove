@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Enrollment Interest — The Learning Loft of Elk Grove</title>
-  <meta name="description" content="Interested in joining The Learning Loft of Elk Grove? Fill out our interest form and we'll be in touch to connect your family with our community." />
+  <title>Pre-Enrollment Interest Form — The Learning Loft of Elk Grove</title>
+  <meta name="description" content="Interested in joining The Learning Loft of Elk Grove for the 2026–2027 school year? Fill out our pre-enrollment interest form and we'll be in touch." />
   <link rel="icon" type="image/x-icon" href="images/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
   <link rel="icon" type="image/png" sizes="256x256" href="images/favicon-256.png">
@@ -56,9 +56,9 @@
   <!-- ── Page Hero ── -->
   <section class="page-hero">
     <div class="container">
-      <span class="eyebrow">Join Our Community</span>
-      <h1>We'd Love to Meet<br>Your Family</h1>
-      <p>Fill out the form below to express your interest. We'll reach out within a few days to get to know you and answer any questions.</p>
+      <span class="eyebrow">2026–2027 School Year</span>
+      <h1>Pre-Enrollment<br>Interest Form</h1>
+      <p>The Learning Loft of Elk Grove will run September 15, 2026 through May 20, 2027, meeting Tuesdays and/or Thursdays, 10:00 AM to 2:00 PM, in Elk Grove, California.</p>
     </div>
   </section>
 
@@ -262,30 +262,25 @@
           <div class="info-divider"></div>
 
           <div style="background:var(--green-pale); border-radius:var(--r-sm); padding:1rem; font-size:.85rem; color:var(--green-dark);">
-            <strong>This is a no-pressure inquiry.</strong> Submitting this form simply starts a conversation. There's no commitment required.
+            <strong>This is an interest form only.</strong> It does not enroll your child or reserve a spot. Formal enrollment will open separately, and we'll be in touch.
           </div>
         </div>
 
         <!-- Form -->
         <div class="fade-up" style="transition-delay:.1s">
           <div class="form-card">
-            <h2 style="margin-bottom:.4rem;">Enrollment Interest Form</h2>
-            <p style="margin-bottom:2rem; font-size:.95rem;">Tell us a little about your family. All fields marked <span style="color:var(--green); font-weight:700;">*</span> are required.</p>
+            <h2 style="margin-bottom:.75rem;">Pre-Enrollment Interest Form</h2>
+            <p style="font-size:.9rem; font-style:italic; color:var(--text-muted); margin-bottom:1.5rem;">This is an interest form only. It does not enroll your child or reserve a spot. We're using it to gauge interest and plan for the upcoming year. Formal enrollment will open separately, and we'll be in touch.</p>
+            <p style="margin-bottom:2rem; font-size:.85rem; color:var(--text-muted);">All fields marked <span style="color:var(--green); font-weight:700;">*</span> are required.</p>
 
             <form id="enrollForm" novalidate>
 
               <!-- Parent Info -->
               <h4 style="font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:1rem; margin-top:.25rem;">Parent / Guardian</h4>
 
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="parentFirst">First Name <span class="req">*</span></label>
-                  <input type="text" id="parentFirst" name="parentFirst" placeholder="Jane" required autocomplete="given-name" />
-                </div>
-                <div class="form-group">
-                  <label for="parentLast">Last Name <span class="req">*</span></label>
-                  <input type="text" id="parentLast" name="parentLast" placeholder="Smith" required autocomplete="family-name" />
-                </div>
+              <div class="form-group">
+                <label for="parentName">Parent / Guardian Name <span class="req">*</span></label>
+                <input type="text" id="parentName" name="parentName" placeholder="Jane Smith" required autocomplete="name" />
               </div>
 
               <div class="form-row">
@@ -318,54 +313,63 @@
                 <span style="font-size:1.1rem;line-height:1;">+</span> Add another child
               </button>
 
+              <!-- Program Interest -->
+              <h4 style="font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:1rem; margin-top:.5rem;">Program Interest</h4>
+
               <div class="form-group">
-                <label for="howLong">How long have you been homeschooling?</label>
-                <select id="howLong" name="howLong">
+                <label for="daysInterest">How many days per week are you interested in? <span class="req">*</span></label>
+                <select id="daysInterest" name="daysInterest" required>
                   <option value="" disabled selected>Select one</option>
-                  <option>We're just getting started (less than 1 year)</option>
-                  <option>1–3 years</option>
-                  <option>4–6 years</option>
-                  <option>7+ years</option>
+                  <option>1 day/week ($140/month)</option>
+                  <option>2 days/week ($260/month)</option>
+                  <option>Not sure yet</option>
                 </select>
+              </div>
+
+              <div class="form-group">
+                <label for="dayPreference">If one day per week, which day do you prefer?</label>
+                <select id="dayPreference" name="dayPreference">
+                  <option value="" disabled selected>Select one (if applicable)</option>
+                  <option>Tuesday</option>
+                  <option>Thursday</option>
+                  <option>Either</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="tuitionExchange">Interested in our Tuition Exchange Program? <span class="req">*</span></label>
+                <p style="font-size:.82rem; color:var(--text-muted); margin-top:-.3rem; margin-bottom:.5rem;">Volunteering as a Learning Guide in exchange for tuition credit.</p>
+                <select id="tuitionExchange" name="tuitionExchange" required>
+                  <option value="" disabled selected>Select one</option>
+                  <option>Yes</option>
+                  <option>No</option>
+                  <option>Maybe, tell me more</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="charterProgram">Are you currently enrolled with (or planning to enroll with) a charter or independent-study program?</label>
+                <input type="text" id="charterProgram" name="charterProgram" placeholder="If so, which one?" />
+                <p style="font-size:.8rem; color:var(--text-muted); margin-top:.4rem;">We're in the process of establishing charter partnerships. This helps us reach out as those are confirmed.</p>
               </div>
 
               <!-- Discovery & Intent -->
               <h4 style="font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:1rem; margin-top:.5rem;">A Little More</h4>
 
               <div class="form-group">
-                <label for="hearAbout">How did you hear about us?</label>
-                <select id="hearAbout" name="hearAbout">
-                  <option value="" disabled selected>Select one</option>
-                  <option>Word of mouth / friend or family</option>
-                  <option>Social media (Instagram, Facebook)</option>
-                  <option>Local homeschool group or co-op</option>
-                  <option>Internet search</option>
-                  <option>Flyer or community posting</option>
-                  <option>Other</option>
-                </select>
+                <label for="hearAbout">How did you hear about The Learning Loft?</label>
+                <input type="text" id="hearAbout" name="hearAbout" placeholder="e.g. a friend, social media, a homeschool group..." />
               </div>
 
               <div class="form-group">
-                <label for="interest">Which part of the program excites you most?</label>
-                <select id="interest" name="interest">
-                  <option value="" disabled selected>Select one (or share more below)</option>
-                  <option>Word &amp; World (reading, writing &amp; academics)</option>
-                  <option>Speak &amp; Story / Canvas &amp; Curtain (language &amp; the arts)</option>
-                  <option>Roots &amp; Research (outdoor exploration &amp; gardening)</option>
-                  <option>Lead &amp; Launch (leadership &amp; life skills)</option>
-                  <option>All of it, we're excited about everything!</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="message">Questions, notes, or anything you'd like us to know</label>
+                <label for="message">Anything else you'd like us to know, or questions you have?</label>
                 <textarea id="message" name="message" placeholder="Tell us anything you'd like: your child's learning style, current interests, questions about the program, or just a hello!"></textarea>
               </div>
 
               <button type="submit" class="form-submit">
                 Send My Interest Form &rarr;
               </button>
-              <p class="form-note">We'll be in touch within 2–3 business days. No spam, ever.</p>
+              <p class="form-note">Submitting this form does not enroll your child or reserve a spot in the program. It simply lets us know you're interested so we can plan ahead and reach out when formal enrollment opens. Tuition, program details, and enrollment steps will be confirmed separately.</p>
             </form>
 
             <div class="success-msg" id="successMsg" role="alert">
@@ -479,16 +483,17 @@
             'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90bXVmbGZwb2d0cGt6cXJjbG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MzA1NTQsImV4cCI6MjA5OTIwNjU1NH0._FBPP-VskInqSNHaUQLOZmwWWcFf1ERHwMCB5_KcJ0Y',
           },
           body: JSON.stringify({
-            parentFirst: form.parentFirst.value.trim(),
-            parentLast:  form.parentLast.value.trim(),
-            email:       form.email.value.trim(),
-            phone:       form.phone.value.trim(),
+            parentName:      form.parentName.value.trim(),
+            email:           form.email.value.trim(),
+            phone:           form.phone.value.trim(),
             childName,
             childAge,
-            howLong:     form.howLong.value,
-            hearAbout:   form.hearAbout.value,
-            interest:    form.interest.value,
-            message:     form.message.value.trim(),
+            daysInterest:    form.daysInterest.value,
+            dayPreference:   form.dayPreference.value,
+            tuitionExchange: form.tuitionExchange.value,
+            charterProgram:  form.charterProgram.value.trim(),
+            hearAbout:       form.hearAbout.value.trim(),
+            message:         form.message.value.trim(),
           }),
         });
 
