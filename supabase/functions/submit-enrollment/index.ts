@@ -20,9 +20,13 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { parentFirst, parentLast, email, phone, childName, childAge, howLong, hearAbout, interest, message } = body;
+    const {
+      parentName, email, phone, childName, childAge,
+      daysInterest, dayPreference, tuitionExchange, charterProgram,
+      hearAbout, message,
+    } = body;
 
-    if (!parentFirst || !parentLast || !email || !childName || !childAge) {
+    if (!parentName || !email || !childName || !childAge) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -38,15 +42,16 @@ Deno.serve(async (req) => {
     const { error: dbError } = await supabase
       .from("enrollment_submissions")
       .insert({
-        parent_first: parentFirst,
-        parent_last: parentLast,
+        parent_name: parentName,
         email,
         phone: phone || null,
         child_name: childName,
         child_age: childAge,
-        how_long: howLong || null,
+        days_interest: daysInterest || null,
+        day_preference: dayPreference || null,
+        tuition_exchange: tuitionExchange || null,
+        charter_program: charterProgram || null,
         hear_about: hearAbout || null,
-        interest: interest || null,
         message: message || null,
       });
 
@@ -67,22 +72,25 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             from: "The Learning Loft <enrollments@thelearninglofteg.com>",
             to: notifyEmail,
-            subject: `New Enrollment Inquiry — ${parentFirst} ${parentLast}`,
+            subject: `New Pre-Enrollment Interest — ${parentName}`,
             html: `
-              <h2>New Enrollment Interest Form</h2>
-              <p><strong>Parent:</strong> ${parentFirst} ${parentLast}</p>
+              <h2>New Pre-Enrollment Interest Form</h2>
+              <p><strong>Parent:</strong> ${parentName}</p>
               <p><strong>Email:</strong> ${email}</p>
               <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
               <hr>
               <p><strong>Child(ren):</strong> ${childName}</p>
               <p><strong>Age(s):</strong> ${childAge}</p>
-              <p><strong>Homeschooling for:</strong> ${howLong || "Not specified"}</p>
+              <hr>
+              <p><strong>Days interested in:</strong> ${daysInterest || "Not specified"}</p>
+              <p><strong>Day preference (if one day/week):</strong> ${dayPreference || "Not specified"}</p>
+              <p><strong>Tuition Exchange Program:</strong> ${tuitionExchange || "Not specified"}</p>
+              <p><strong>Charter / independent-study program:</strong> ${charterProgram || "Not specified"}</p>
               <hr>
               <p><strong>How they heard about us:</strong> ${hearAbout || "Not specified"}</p>
-              <p><strong>Most excited about:</strong> ${interest || "Not specified"}</p>
               <p><strong>Message:</strong> ${message || "None"}</p>
               <hr>
-              <p style="color:#888; font-size:12px;">Submitted via the Learning Loft website enrollment form.</p>
+              <p style="color:#888; font-size:12px;">Submitted via the Learning Loft website pre-enrollment interest form.</p>
             `,
           }),
         });
