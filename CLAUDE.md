@@ -85,7 +85,7 @@ Small caps, letter-spaced, green color. Used above every section heading.
 ### Nav
 - Always use the existing `<nav class="nav">` markup from any page
 - Logo: `images/horizontal-nav-logo-soft-web-transparent.png` at `height: 74px`
-- "Enroll Now" CTA normally links to `enrollment.html` — **temporarily disabled sitewide** (dimmed `<span aria-disabled="true">` instead of a link) while enrollment is paused; see Pending TODOs
+- CTA links to `enrollment.html`, labeled **"Join Interest List"** (not "Enroll Now" — the form is pre-enrollment interest only, not live enrollment). Active sitewide.
 
 ### Footer
 - Always use the existing footer markup from any page
@@ -124,10 +124,9 @@ Copy nav and footer from an existing page — don't rewrite them.
 - New database tables → new migration file with timestamp prefix (`YYYYMMDDHHMMSS_description.sql`). Never edit existing migration files.
 
 ## Pending TODOs
-- [ ] Delete test submission (id: eaea48ce-9367-482d-9a94-a7064af21fec) from enrollment_submissions table — do this from the admin page once confirmed working in production
+- [ ] Delete test submission (id: eaea48ce-9367-482d-9a94-a7064af21fec) from enrollment_submissions table — form is now confirmed working end-to-end in production (verified 2026-07-21), safe to delete from the admin page anytime
 - [ ] Change admin account passwords from temp values (LoftDev#2026 / LoftOwner#2026) — do via Supabase dashboard → Authentication → Users
 - [ ] Owner (info@thelearninglofteg.com) to create a personal Google Workspace email for day-to-day use; keep info@ for site/client contact
-- [ ] Re-enable "Enroll Now" / "Express Interest" / "How to Enroll" links sitewide once enrollment reopens (currently disabled on nav, footer, About, and Program pages)
 - [ ] Program page's Enrichment Rotations cards still need real course descriptions from the owner for Speak & Story/Canvas & Curtain and Lead & Launch (current bullet lists/tags are placeholders left over from the old Art Fusion/Life Skills copy)
 
 ## Completed
@@ -142,3 +141,6 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [x] Re-enabled Program nav link on the homepage placeholder (`index.html`) to point to the reworked program page
 - [x] Real homepage content (from `homepage-copy-refresh` branch, ~11 owner-requested content items) merged to main, replacing the temporary "Under Construction" placeholder; Enroll Now links disabled sitewide on the restored homepage to match the rest of the site
 - [x] About page content refresh (from `about-section-refresh` branch, owner-approved: reordered Our Story above Mission, green hero, new hero subtext, updated mission paragraph, repurposed mission cards with new icons, new Core Values list, real family photo) merged to main
+- [x] Removed all em dashes sitewide per owner's request (a tell for AI-generated content) and applied her follow-up copy edits: homepage "Who We Are" heading/paragraph, Program page hero/schedule text and rotation card bullets/tags, corrected stale "2:30 PM" hours references, fixed a pre-rebrand enrollment form dropdown
+- [x] Added Tuition & Fees, Program Calendar, and Affordability/Commitment content to `enrollment.html` from the owner's tuition doc; re-enabled all "Enroll Now" links sitewide (relabeled "Join Interest List" to accurately describe an interest form, not instant enrollment)
+- [x] Replaced the enrollment form with the owner's new Pre-Enrollment Interest Form (2026–2027 school year): single Parent/Guardian Name field, new Days-per-Week/Tuition-Exchange/Charter-Program questions, dropped outdated fields. Full stack shipped: new Supabase migration, updated `submit-enrollment` Edge Function (deployed), updated `admin.html` display — verified end-to-end with a real test submission
