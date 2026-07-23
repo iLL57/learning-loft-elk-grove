@@ -85,7 +85,7 @@ Small caps, letter-spaced, green color. Used above every section heading.
 ### Nav
 - Always use the existing `<nav class="nav">` markup from any page
 - Logo: `images/horizontal-nav-logo-soft-web-transparent.png` at `height: 74px`
-- CTA links to `enrollment.html`, labeled **"Join Interest List"** (not "Enroll Now" — the form is pre-enrollment interest only, not live enrollment). Active sitewide.
+- CTA links to `enrollment.html`, labeled **"Enrollment"** (owner reverted from "Join Interest List" after feedback). Active sitewide.
 
 ### Footer
 - Always use the existing footer markup from any page
@@ -144,3 +144,4 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [x] Removed all em dashes sitewide per owner's request (a tell for AI-generated content) and applied her follow-up copy edits: homepage "Who We Are" heading/paragraph, Program page hero/schedule text and rotation card bullets/tags, corrected stale "2:30 PM" hours references, fixed a pre-rebrand enrollment form dropdown
 - [x] Added Tuition & Fees, Program Calendar, and Affordability/Commitment content to `enrollment.html` from the owner's tuition doc; re-enabled all "Enroll Now" links sitewide (relabeled "Join Interest List" to accurately describe an interest form, not instant enrollment)
 - [x] Replaced the enrollment form with the owner's new Pre-Enrollment Interest Form (2026–2027 school year): single Parent/Guardian Name field, new Days-per-Week/Tuition-Exchange/Charter-Program questions, dropped outdated fields. Full stack shipped: new Supabase migration, updated `submit-enrollment` Edge Function (deployed), updated `admin.html` display — verified end-to-end with a real test submission
+- [x] Relabeled all "Join Interest List" / "Express Your Interest" CTAs and buttons sitewide back to "Enrollment" per owner feedback
