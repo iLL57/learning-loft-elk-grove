@@ -57,12 +57,29 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { submissionId, action } = await req.json();
+    const { submissionId, action, confirmedGrades } = await req.json();
     if (!submissionId || !["send_package", "waitlist", "reject"].includes(action)) {
       return new Response(JSON.stringify({ error: "Invalid request" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    const VALID_GRADES = ["TK", "K", "1", "2", "3", "4", "5", "6"];
+    if (action === "send_package") {
+      if (!confirmedGrades || typeof confirmedGrades !== "object") {
+        return new Response(JSON.stringify({ error: "Missing confirmed grade levels" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      for (const grade of Object.values(confirmedGrades)) {
+        if (!VALID_GRADES.includes(grade as string)) {
+          return new Response(JSON.stringify({ error: `Invalid grade level: ${grade}` }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
     }
 
     const supabase = createClient(
@@ -100,6 +117,13 @@ Deno.serve(async (req) => {
       // TODO (Phase 3): create a Square payment link for the initial enrollment
       // fee here instead of a placeholder.
       if (studentList.length) {
+        const missingGrade = studentList.find(s => !confirmedGrades[s.id]);
+        if (missingGrade) {
+          return new Response(JSON.stringify({ error: `Missing confirmed grade for ${missingGrade.student_name}` }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         const { error: insertError } = await supabase.from("enrolled_students").insert(
           studentList.map(s => ({
             parent_name: submission.parent_name,
@@ -107,7 +131,7 @@ Deno.serve(async (req) => {
             phone: submission.phone,
             student_name: s.student_name,
             student_age: "",
-            grade_level: s.grade_level,
+            grade_level: confirmedGrades[s.id],
             payment_status: "pending",
             documents_signed: false,
             initial_payment_received: false,

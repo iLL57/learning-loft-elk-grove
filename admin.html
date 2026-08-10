@@ -502,7 +502,7 @@
       });
     });
 
-    async function callAdminAction(submissionId, action) {
+    async function callAdminAction(submissionId, action, confirmedGrades) {
       const { data: { session } } = await sb.auth.getSession();
       const res = await fetch('https://otmuflfpogtpkzqrclmm.supabase.co/functions/v1/admin-submission-action', {
         method: 'POST',
@@ -510,7 +510,7 @@
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ submissionId, action }),
+        body: JSON.stringify({ submissionId, action, confirmedGrades }),
       });
       if (!res.ok) {
         const body = await res.text();
@@ -594,10 +594,12 @@
         </div>
         ${r.message ? `<div style="margin-top:1rem;"><strong style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);">Message</strong><p style="margin-top:.3rem;font-size:.92rem;color:var(--text-body);">${r.message}</p></div>` : ''}
         <div style="margin-top:1.25rem;"><strong style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);">Status</strong><div style="margin-top:.4rem;">${statusBadge(r.status)}</div></div>
-        <div style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border); display:flex; flex-wrap:wrap; gap:.6rem;">
-          <button class="btn btn--green" id="actionSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;" ${isDecided ? 'disabled' : ''}>Send Enrollment Package</button>
-          <button class="btn btn--outline" id="actionWaitlist" style="font-size:.85rem; padding:.6rem 1.2rem;" ${isDecided ? 'disabled' : ''}>Add to Waitlist</button>
-          <button class="btn btn--outline" id="actionReject" style="font-size:.85rem; padding:.6rem 1.2rem; color:var(--terracotta-dark); border-color:var(--terracotta-dark);" ${isDecided ? 'disabled' : ''}>Reject</button>
+        <div id="actionBar" style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border);">
+          <div id="actionButtons" style="display:flex; flex-wrap:wrap; gap:.6rem;">
+            <button class="btn btn--green" id="actionSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;" ${isDecided ? 'disabled' : ''}>Send Enrollment Package</button>
+            <button class="btn btn--outline" id="actionWaitlist" style="font-size:.85rem; padding:.6rem 1.2rem;" ${isDecided ? 'disabled' : ''}>Add to Waitlist</button>
+            <button class="btn btn--outline" id="actionReject" style="font-size:.85rem; padding:.6rem 1.2rem; color:var(--terracotta-dark); border-color:var(--terracotta-dark);" ${isDecided ? 'disabled' : ''}>Reject</button>
+          </div>
         </div>
         ${isDecided ? `<p style="font-size:.8rem; color:var(--text-muted); margin-top:.6rem; font-style:italic;">A decision has already been made on this application (${r.status.replace('_',' ')}).</p>` : ''}
       `;
@@ -618,9 +620,59 @@
             buttons.forEach(b => b.disabled = false);
           }
         };
-        document.getElementById('actionSendPackage').addEventListener('click', () => runAction('send_package', 'Send enrollment package'));
-        document.getElementById('actionWaitlist').addEventListener('click',    () => runAction('waitlist',     'Add to waitlist'));
-        document.getElementById('actionReject').addEventListener('click',     () => runAction('reject',       'Reject this application'));
+
+        document.getElementById('actionSendPackage').addEventListener('click', () => {
+          const gradeOptions = ['TK','K','1','2','3','4','5','6']
+            .map(g => `<option value="${g}">${GRADE_LABELS[g]}</option>`).join('');
+          document.getElementById('actionBar').innerHTML = `
+            <p style="font-size:.85rem; font-weight:700; color:var(--text); margin-bottom:.75rem;">Confirm each student's grade level before sending the package:</p>
+            <div style="display:flex; flex-direction:column; gap:.75rem; margin-bottom:1rem;">
+              ${students.map(s => `
+                <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
+                  <div style="min-width:160px;">
+                    <strong>${s.student_name}</strong>
+                    ${s.notes ? `<div style="font-size:.78rem; color:var(--text-muted);">${s.notes}</div>` : ''}
+                  </div>
+                  <select class="confirm-grade" data-student-id="${s.id}" required style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.4rem .6rem; font-family:var(--font-body); font-size:.85rem;">
+                    <option value="" disabled ${s.grade_level ? '' : 'selected'}>Select grade</option>
+                    ${['TK','K','1','2','3','4','5','6'].map(g => `<option value="${g}" ${s.grade_level === g ? 'selected' : ''}>${GRADE_LABELS[g]}</option>`).join('')}
+                  </select>
+                </div>
+              `).join('')}
+            </div>
+            <div style="display:flex; gap:.6rem;">
+              <button class="btn btn--green" id="confirmSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;">Confirm &amp; Send Package</button>
+              <button class="btn btn--outline" id="cancelSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;">Cancel</button>
+            </div>
+          `;
+          document.getElementById('cancelSendPackage').addEventListener('click', () => openSubModal(r));
+          document.getElementById('confirmSendPackage').addEventListener('click', async () => {
+            const selects = document.querySelectorAll('.confirm-grade');
+            const confirmedGrades = {};
+            let allSelected = true;
+            selects.forEach(sel => {
+              if (!sel.value) { allSelected = false; sel.style.borderColor = '#c0392b'; }
+              confirmedGrades[sel.dataset.studentId] = sel.value;
+            });
+            if (!allSelected) { alert('Please select a grade level for every student.'); return; }
+            if (!confirm(`Send enrollment package for ${r.parent_name}? This will email the applicant.`)) return;
+            document.getElementById('confirmSendPackage').disabled = true;
+            document.getElementById('cancelSendPackage').disabled = true;
+            try {
+              await callAdminAction(r.id, 'send_package', confirmedGrades);
+              document.getElementById('submissionModal').style.display = 'none';
+              loadSubmissions();
+              loadStudents();
+            } catch (err) {
+              alert('Something went wrong. Please try again.');
+              document.getElementById('confirmSendPackage').disabled = false;
+              document.getElementById('cancelSendPackage').disabled = false;
+            }
+          });
+        });
+
+        document.getElementById('actionWaitlist').addEventListener('click', () => runAction('waitlist', 'Add to waitlist'));
+        document.getElementById('actionReject').addEventListener('click',  () => runAction('reject',   'Reject this application'));
       }
     }
 
