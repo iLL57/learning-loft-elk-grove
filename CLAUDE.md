@@ -128,6 +128,7 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [ ] Change admin account passwords from temp values (LoftDev#2026 / LoftOwner#2026) — do via Supabase dashboard → Authentication → Users
 - [ ] Owner (info@thelearninglofteg.com) to create a personal Google Workspace email for day-to-day use; keep info@ for site/client contact
 - [ ] Program page's Enrichment Rotations cards still need real course descriptions from the owner for Speak & Story/Canvas & Curtain and Lead & Launch (current bullet lists/tags are placeholders left over from the old Art Fusion/Life Skills copy)
+- [ ] Remove the "Time" column from the Program page's daily schedule table, and remove the "Morning Move & Groove" and "Closing Circle" rows entirely
 
 ## Completed
 - [x] Enrollment form with dynamic per-child name & age inputs
