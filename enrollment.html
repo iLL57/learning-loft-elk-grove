@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pre-Enrollment Interest Form — The Learning Loft of Elk Grove</title>
-  <meta name="description" content="Interested in joining The Learning Loft of Elk Grove for the 2026–2027 school year? Fill out our pre-enrollment interest form and we'll be in touch." />
+  <title>Online Application — The Learning Loft of Elk Grove</title>
+  <meta name="description" content="Interested in joining The Learning Loft of Elk Grove for the 2026–2027 school year? Complete our online application and we'll be in touch." />
   <link rel="icon" type="image/x-icon" href="images/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
   <link rel="icon" type="image/png" sizes="256x256" href="images/favicon-256.png">
@@ -18,12 +18,22 @@
       row.innerHTML = `
         <div class="form-group">
           <label>Child's Name <span class="req">*</span></label>
-          <input type="text" name="childName[]" placeholder="e.g. Noah" required />
+          <input type="text" name="studentName[]" placeholder="e.g. Noah" required />
         </div>
         <div class="form-group" style="display:flex;gap:.5rem;align-items:flex-end;">
-          <div style="flex:1;max-width:120px;">
-            <label>Age <span class="req">*</span></label>
-            <input type="text" name="childAge[]" placeholder="e.g. 10" required />
+          <div style="flex:1;max-width:140px;">
+            <label>Grade Level <span class="req">*</span></label>
+            <select name="gradeLevel[]" required>
+              <option value="" disabled selected>Select one</option>
+              <option value="TK">TK</option>
+              <option value="K">K</option>
+              <option value="1">1st</option>
+              <option value="2">2nd</option>
+              <option value="3">3rd</option>
+              <option value="4">4th</option>
+              <option value="5">5th</option>
+              <option value="6">6th</option>
+            </select>
           </div>
           <button type="button" onclick="this.closest('.child-row').remove()" style="margin-bottom:.1rem;background:none;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer;padding:.3rem;" aria-label="Remove child">&times;</button>
         </div>
@@ -57,7 +67,7 @@
   <section class="page-hero">
     <div class="container">
       <span class="eyebrow">2026–2027 School Year</span>
-      <h1>Pre-Enrollment<br>Interest Form</h1>
+      <h1>Online<br>Application</h1>
       <p>The Learning Loft of Elk Grove will run September 15, 2026 through May 20, 2027, meeting Tuesdays and/or Thursdays, 10:00 AM to 2:00 PM, in Elk Grove, California.</p>
     </div>
   </section>
@@ -253,24 +263,24 @@
 
           <h3 style="margin-bottom:1rem;">What Happens Next</h3>
           <ol style="color:var(--text-light); font-size:.88rem; padding-left:1.1rem; display:flex; flex-direction:column; gap:.6rem; list-style:decimal;">
-            <li>We receive your interest form</li>
-            <li>We'll reach out within 2–3 business days</li>
-            <li>We schedule a short get-to-know-you call or visit</li>
-            <li>We confirm fit and talk through next steps</li>
+            <li>We receive your application</li>
+            <li>Our team reviews it, typically within 2–3 business days</li>
+            <li>We follow up with next steps: an enrollment package, a spot on our waitlist, or to let you know if we're not a fit right now</li>
+            <li>Once paperwork and payment are complete, your child's spot is confirmed</li>
           </ol>
 
           <div class="info-divider"></div>
 
           <div style="background:var(--green-pale); border-radius:var(--r-sm); padding:1rem; font-size:.85rem; color:var(--green-dark);">
-            <strong>This is an interest form only.</strong> It does not enroll your child or reserve a spot. Formal enrollment will open separately, and we'll be in touch.
+            <strong>This is an application, not instant enrollment.</strong> Submitting it does not reserve your child's spot. We'll follow up with next steps after review.
           </div>
         </div>
 
         <!-- Form -->
         <div class="fade-up" style="transition-delay:.1s">
           <div class="form-card">
-            <h2 style="margin-bottom:.75rem;">Pre-Enrollment Interest Form</h2>
-            <p style="font-size:.9rem; font-style:italic; color:var(--text-muted); margin-bottom:1.5rem;">This is an interest form only. It does not enroll your child or reserve a spot. We're using it to gauge interest and plan for the upcoming year. Formal enrollment will open separately, and we'll be in touch.</p>
+            <h2 style="margin-bottom:.75rem;">Online Application</h2>
+            <p style="font-size:.9rem; font-style:italic; color:var(--text-muted); margin-bottom:1.5rem;">Submitting this application does not reserve your child's spot. Our team reviews every application and will follow up with next steps.</p>
             <p style="margin-bottom:2rem; font-size:.85rem; color:var(--text-muted);">All fields marked <span style="color:var(--green); font-weight:700;">*</span> are required.</p>
 
             <form id="enrollForm" novalidate>
@@ -301,11 +311,23 @@
                 <div class="form-row child-row">
                   <div class="form-group">
                     <label>Child's Name <span class="req">*</span></label>
-                    <input type="text" name="childName[]" placeholder="e.g. Lily" required />
+                    <input type="text" name="studentName[]" placeholder="e.g. Lily" required />
                   </div>
-                  <div class="form-group">
-                    <label>Age <span class="req">*</span></label>
-                    <input type="text" name="childAge[]" placeholder="e.g. 8" required style="max-width:120px" />
+                  <div class="form-group" style="display:flex;gap:.5rem;align-items:flex-end;">
+                    <div style="flex:1;max-width:140px;">
+                      <label>Grade Level <span class="req">*</span></label>
+                      <select name="gradeLevel[]" required>
+                        <option value="" disabled selected>Select one</option>
+                        <option value="TK">TK</option>
+                        <option value="K">K</option>
+                        <option value="1">1st</option>
+                        <option value="2">2nd</option>
+                        <option value="3">3rd</option>
+                        <option value="4">4th</option>
+                        <option value="5">5th</option>
+                        <option value="6">6th</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -367,14 +389,14 @@
               </div>
 
               <button type="submit" class="form-submit">
-                Send My Interest Form &rarr;
+                Submit My Application &rarr;
               </button>
-              <p class="form-note">Submitting this form does not enroll your child or reserve a spot in the program. It simply lets us know you're interested so we can plan ahead and reach out when formal enrollment opens. Tuition, program details, and enrollment steps will be confirmed separately.</p>
+              <p class="form-note">Submitting this application does not enroll your child or reserve a spot in the program. Our team reviews every application and will follow up with next steps: an enrollment package, a spot on our waitlist, or to let you know if we're not a fit right now.</p>
             </form>
 
             <div class="success-msg" id="successMsg" role="alert">
-              <h4>Thank you! We received your form.</h4>
-              <p>We're so glad you reached out. Someone from The Learning Loft will be in touch within 2–3 business days. We can't wait to connect with your family!</p>
+              <h4>Thank you! We received your application.</h4>
+              <p>We're so glad you applied. You'll receive a confirmation email shortly, and our team will follow up within 2–3 business days after reviewing your application. We can't wait to connect with your family!</p>
             </div>
           </div>
         </div>
@@ -465,11 +487,13 @@
       });
       if (!valid) return;
 
-      // Collect children
-      const nameInputs = form.querySelectorAll('[name="childName[]"]');
-      const ageInputs  = form.querySelectorAll('[name="childAge[]"]');
-      const childName  = Array.from(nameInputs).map(i => i.value.trim()).join(', ');
-      const childAge   = Array.from(ageInputs).map(i => i.value.trim()).join(', ');
+      // Collect students
+      const nameInputs  = form.querySelectorAll('[name="studentName[]"]');
+      const gradeInputs = form.querySelectorAll('[name="gradeLevel[]"]');
+      const students = Array.from(nameInputs).map((input, i) => ({
+        name: input.value.trim(),
+        gradeLevel: gradeInputs[i].value,
+      }));
 
       const btn = form.querySelector('.form-submit');
       btn.textContent = 'Sending…';
@@ -486,8 +510,7 @@
             parentName:      form.parentName.value.trim(),
             email:           form.email.value.trim(),
             phone:           form.phone.value.trim(),
-            childName,
-            childAge,
+            students,
             daysInterest:    form.daysInterest.value,
             dayPreference:   form.dayPreference.value,
             tuitionExchange: form.tuitionExchange.value,
@@ -508,7 +531,7 @@
 
       } catch (err) {
         console.error('Submit error:', err);
-        btn.textContent = 'Send My Interest Form →';
+        btn.textContent = 'Submit My Application →';
         btn.disabled = false;
         alert('Something went wrong. Please try again or email us directly at info@thelearninglofteg.com');
       }

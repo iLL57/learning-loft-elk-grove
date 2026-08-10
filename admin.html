@@ -78,12 +78,12 @@
             <span class="admin-stat-card__label">New</span>
           </div>
           <div class="admin-stat-card">
-            <span class="admin-stat-card__val" id="stat-contacted">—</span>
-            <span class="admin-stat-card__label">Contacted</span>
+            <span class="admin-stat-card__val" id="stat-package_sent">—</span>
+            <span class="admin-stat-card__label">Package Sent</span>
           </div>
           <div class="admin-stat-card">
-            <span class="admin-stat-card__val" id="stat-enrolled">—</span>
-            <span class="admin-stat-card__label">Enrolled</span>
+            <span class="admin-stat-card__val" id="stat-waitlisted">—</span>
+            <span class="admin-stat-card__label">Waitlisted</span>
           </div>
         </div>
         <div class="admin-card">
@@ -93,9 +93,9 @@
               <select id="filterSubs" style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.5rem .75rem; font-size:.82rem; font-family:var(--font-body); color:var(--text);">
                 <option value="all">All Statuses</option>
                 <option value="new">New</option>
-                <option value="contacted">Contacted</option>
-                <option value="enrolled">Enrolled</option>
-                <option value="declined">Declined</option>
+                <option value="package_sent">Package Sent</option>
+                <option value="waitlisted">Waitlisted</option>
+                <option value="rejected">Rejected</option>
               </select>
               <button class="btn btn--outline" id="exportSubsBtn" style="padding:.5rem 1.1rem; font-size:.82rem;">Export CSV</button>
             </div>
@@ -107,14 +107,13 @@
                   <th>Date</th>
                   <th>Parent</th>
                   <th>Email</th>
-                  <th>Child(ren)</th>
-                  <th>Age(s)</th>
+                  <th>Student(s)</th>
                   <th>Status</th>
                   <th>Details</th>
                 </tr>
               </thead>
               <tbody id="submissionsBody">
-                <tr><td colspan="7" class="admin-empty">Loading…</td></tr>
+                <tr><td colspan="6" class="admin-empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
@@ -155,6 +154,8 @@
                   <th>Grade</th>
                   <th>Parent/Guardian</th>
                   <th>Email</th>
+                  <th>Documents</th>
+                  <th>Initial Payment</th>
                   <th>Enrolled</th>
                   <th>Payment</th>
                   <th>Next Due</th>
@@ -163,7 +164,7 @@
                 </tr>
               </thead>
               <tbody id="studentsBody">
-                <tr><td colspan="9" class="admin-empty">Loading…</td></tr>
+                <tr><td colspan="11" class="admin-empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
@@ -234,15 +235,9 @@
           <label>Age</label>
           <input type="text" name="studentAge" placeholder="e.g. 8" />
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Parent First Name <span class="req">*</span></label>
-            <input type="text" name="parentFirst" required />
-          </div>
-          <div class="form-group">
-            <label>Parent Last Name <span class="req">*</span></label>
-            <input type="text" name="parentLast" required />
-          </div>
+        <div class="form-group">
+          <label>Parent / Guardian Name <span class="req">*</span></label>
+          <input type="text" name="parentName" required />
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -395,8 +390,14 @@
     function badge(cls, label) {
       return `<span class="badge ${cls}">${label}</span>`;
     }
+    const GRADE_LABELS = { TK: 'TK', K: 'K', '1': '1st', '2': '2nd', '3': '3rd', '4': '4th', '5': '5th', '6': '6th' };
     function statusBadge(s) {
-      return { new: badge('badge--blue','New'), contacted: badge('badge--gold','Contacted'), enrolled: badge('badge--green','Enrolled'), declined: badge('badge--muted','Declined') }[s] || badge('badge--muted', s);
+      return {
+        new:           badge('badge--blue',  'New'),
+        package_sent:  badge('badge--gold',  'Package Sent'),
+        waitlisted:    badge('badge--muted', 'Waitlisted'),
+        rejected:      badge('badge--red',   'Rejected'),
+      }[s] || badge('badge--muted', s);
     }
     function payBadge(s) {
       return { current: badge('badge--green','Current'), pending: badge('badge--gold','Pending'), overdue: badge('badge--red','Overdue') }[s] || badge('badge--muted', s);
@@ -409,19 +410,40 @@
 
     // ── Submissions ──
     let allSubs = [];
+    let studentsBySubmission = {};
     async function loadSubmissions() {
-      const { data } = await sb.from('enrollment_submissions').select('*').order('created_at', { ascending: false });
-      allSubs = data || [];
-      document.getElementById('stat-total').textContent     = allSubs.length;
-      document.getElementById('stat-new').textContent       = allSubs.filter(r => r.status === 'new').length;
-      document.getElementById('stat-contacted').textContent = allSubs.filter(r => r.status === 'contacted').length;
-      document.getElementById('stat-enrolled').textContent  = allSubs.filter(r => r.status === 'enrolled').length;
+      const [{ data: subs }, { data: students }] = await Promise.all([
+        sb.from('enrollment_submissions').select('*').order('created_at', { ascending: false }),
+        sb.from('submission_students').select('*'),
+      ]);
+      allSubs = subs || [];
+      studentsBySubmission = {};
+      (students || []).forEach(s => {
+        (studentsBySubmission[s.submission_id] ||= []).push(s);
+      });
+      document.getElementById('stat-total').textContent          = allSubs.length;
+      document.getElementById('stat-new').textContent            = allSubs.filter(r => r.status === 'new').length;
+      document.getElementById('stat-package_sent').textContent   = allSubs.filter(r => r.status === 'package_sent').length;
+      document.getElementById('stat-waitlisted').textContent     = allSubs.filter(r => r.status === 'waitlisted').length;
       renderSubmissions();
+    }
+
+    function studentsFor(submissionId) {
+      return studentsBySubmission[submissionId] || [];
+    }
+
+    function studentsLabel(submissionId) {
+      const list = studentsFor(submissionId);
+      if (!list.length) return '—';
+      return list.map(s => `${s.student_name} (${GRADE_LABELS[s.grade_level] || s.grade_level})`).join(', ');
     }
 
     function filteredSubs() {
       const filter = document.getElementById('filterSubs').value;
-      return filter === 'all' ? allSubs : allSubs.filter(r => r.status === filter);
+      const subs = filter === 'all' ? allSubs : allSubs.filter(r => r.status === filter);
+      // Waitlist is a queue: show oldest application first.
+      if (filter === 'waitlisted') return [...subs].reverse();
+      return subs;
     }
 
     function renderSubmissions() {
@@ -429,7 +451,7 @@
       const subs = filteredSubs();
 
       if (!subs.length) {
-        body.innerHTML = `<tr><td colspan="7" class="admin-empty">${allSubs.length ? 'No submissions match this filter.' : 'No submissions yet.'}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="6" class="admin-empty">${allSubs.length ? 'No submissions match this filter.' : 'No submissions yet.'}</td></tr>`;
         return;
       }
       body.innerHTML = subs.map(r => `
@@ -437,32 +459,35 @@
           <td style="white-space:nowrap">${fmt(r.created_at)}</td>
           <td><strong>${r.parent_name}</strong></td>
           <td><a href="mailto:${r.email}">${r.email}</a></td>
-          <td>${r.child_name || '—'}</td>
-          <td>${r.child_age || '—'}</td>
-          <td>
-            <select class="status-select" data-id="${r.id}">
-              <option value="new"       ${r.status==='new'       ?'selected':''}>New</option>
-              <option value="contacted" ${r.status==='contacted' ?'selected':''}>Contacted</option>
-              <option value="enrolled"  ${r.status==='enrolled'  ?'selected':''}>Enrolled</option>
-              <option value="declined"  ${r.status==='declined'  ?'selected':''}>Declined</option>
-            </select>
-          </td>
+          <td>${studentsLabel(r.id)}</td>
+          <td>${statusBadge(r.status)}</td>
           <td><button class="admin-link view-sub" data-id="${r.id}">View</button></td>
         </tr>
       `).join('');
 
-      body.querySelectorAll('.status-select').forEach(sel => {
-        sel.addEventListener('change', async () => {
-          await sb.from('enrollment_submissions').update({ status: sel.value }).eq('id', sel.dataset.id);
-          loadSubmissions();
-        });
-      });
       body.querySelectorAll('.view-sub').forEach(btn => {
         btn.addEventListener('click', () => openSubModal(allSubs.find(s => s.id === btn.dataset.id)));
       });
     }
 
     document.getElementById('filterSubs').addEventListener('change', renderSubmissions);
+
+    async function callAdminAction(submissionId, action) {
+      const { data: { session } } = await sb.auth.getSession();
+      const res = await fetch('https://otmuflfpogtpkzqrclmm.supabase.co/functions/v1/admin-submission-action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ submissionId, action }),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        console.error('admin-submission-action failed:', res.status, body);
+        throw new Error('Request failed');
+      }
+    }
 
     function csvEscape(val) {
       const s = (val === null || val === undefined) ? '' : String(val);
@@ -475,8 +500,7 @@
         ['parent_name',      'Parent'],
         ['email',            'Email'],
         ['phone',            'Phone'],
-        ['child_name',       'Child(ren)'],
-        ['child_age',        'Age(s)'],
+        ['students_label',   'Student(s)'],
         ['days_interest',    'Days Interested'],
         ['day_preference',   'Day Preference'],
         ['tuition_exchange', 'Tuition Exchange'],
@@ -487,9 +511,11 @@
       ];
 
       const header = columns.map(([, label]) => csvEscape(label)).join(',');
-      const rows = filteredSubs().map(r => columns.map(([key]) =>
-        csvEscape(key === 'created_at' ? fmt(r[key]) : r[key])
-      ).join(','));
+      const rows = filteredSubs().map(r => columns.map(([key]) => {
+        if (key === 'created_at') return csvEscape(fmt(r[key]));
+        if (key === 'students_label') return csvEscape(studentsLabel(r.id));
+        return csvEscape(r[key]);
+      }).join(','));
 
       const csv = [header, ...rows].join('\r\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -508,12 +534,16 @@
 
     function openSubModal(r) {
       document.getElementById('modalParentName').textContent = r.parent_name;
+      const students = studentsFor(r.id);
+      const studentsHtml = students.length
+        ? `<ul style="margin:.3rem 0 0; padding-left:1.1rem;">${students.map(s => `<li>${s.student_name} — ${GRADE_LABELS[s.grade_level] || s.grade_level}</li>`).join('')}</ul>`
+        : '—';
+      const isDecided = r.status !== 'new';
       document.getElementById('modalBody').innerHTML = `
         <div class="admin-detail-grid">
           <div><strong>Email</strong><p><a href="mailto:${r.email}">${r.email}</a></p></div>
           <div><strong>Phone</strong><p>${r.phone || '—'}</p></div>
-          <div><strong>Child(ren)</strong><p>${r.child_name || '—'}</p></div>
-          <div><strong>Age(s)</strong><p>${r.child_age || '—'}</p></div>
+          <div style="grid-column:1/-1;"><strong>Student(s)</strong>${studentsHtml}</div>
           <div><strong>Days Interested</strong><p>${r.days_interest || '—'}</p></div>
           <div><strong>Day Preference</strong><p>${r.day_preference || '—'}</p></div>
           <div><strong>Tuition Exchange</strong><p>${r.tuition_exchange || '—'}</p></div>
@@ -523,15 +553,40 @@
         </div>
         ${r.message ? `<div style="margin-top:1rem;"><strong style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);">Message</strong><p style="margin-top:.3rem;font-size:.92rem;color:var(--text-body);">${r.message}</p></div>` : ''}
         <div style="margin-top:1.25rem;"><strong style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);">Status</strong><div style="margin-top:.4rem;">${statusBadge(r.status)}</div></div>
+        <div style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border); display:flex; flex-wrap:wrap; gap:.6rem;">
+          <button class="btn btn--green" id="actionSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;" ${isDecided ? 'disabled' : ''}>Send Enrollment Package</button>
+          <button class="btn btn--outline" id="actionWaitlist" style="font-size:.85rem; padding:.6rem 1.2rem;" ${isDecided ? 'disabled' : ''}>Add to Waitlist</button>
+          <button class="btn btn--outline" id="actionReject" style="font-size:.85rem; padding:.6rem 1.2rem; color:var(--terracotta-dark); border-color:var(--terracotta-dark);" ${isDecided ? 'disabled' : ''}>Reject</button>
+        </div>
+        ${isDecided ? `<p style="font-size:.8rem; color:var(--text-muted); margin-top:.6rem; font-style:italic;">A decision has already been made on this application (${r.status.replace('_',' ')}).</p>` : ''}
       `;
       document.getElementById('submissionModal').style.display = 'flex';
+
+      if (!isDecided) {
+        const runAction = async (action, label) => {
+          if (!confirm(`${label} for ${r.parent_name}? This will email the applicant.`)) return;
+          const buttons = document.querySelectorAll('#actionSendPackage, #actionWaitlist, #actionReject');
+          buttons.forEach(b => b.disabled = true);
+          try {
+            await callAdminAction(r.id, action);
+            document.getElementById('submissionModal').style.display = 'none';
+            loadSubmissions();
+            loadStudents();
+          } catch (err) {
+            alert('Something went wrong. Please try again.');
+            buttons.forEach(b => b.disabled = false);
+          }
+        };
+        document.getElementById('actionSendPackage').addEventListener('click', () => runAction('send_package', 'Send enrollment package'));
+        document.getElementById('actionWaitlist').addEventListener('click',    () => runAction('waitlist',     'Add to waitlist'));
+        document.getElementById('actionReject').addEventListener('click',     () => runAction('reject',       'Reject this application'));
+      }
     }
 
     document.getElementById('closeSubModal').addEventListener('click', () => document.getElementById('submissionModal').style.display = 'none');
     document.getElementById('subModalOverlay').addEventListener('click', () => document.getElementById('submissionModal').style.display = 'none');
 
     // ── Enrolled Students ──
-    const GRADE_LABELS = { TK: 'TK', K: 'K', '1': '1st', '2': '2nd', '3': '3rd', '4': '4th', '5': '5th', '6': '6th' };
     let allStudents = [];
     async function loadStudents() {
       const { data } = await sb.from('enrolled_students').select('*').order('created_at', { ascending: false });
@@ -552,15 +607,17 @@
       const body = document.getElementById('studentsBody');
       const students = filteredStudents();
       if (!students.length) {
-        body.innerHTML = `<tr><td colspan="9" class="admin-empty">${allStudents.length ? 'No students match this filter.' : 'No enrolled students yet.'}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="11" class="admin-empty">${allStudents.length ? 'No students match this filter.' : 'No enrolled students yet.'}</td></tr>`;
         return;
       }
       body.innerHTML = students.map(r => `
         <tr>
           <td><strong>${r.student_name}</strong></td>
           <td>${GRADE_LABELS[r.grade_level] || r.grade_level}</td>
-          <td>${r.parent_first} ${r.parent_last}</td>
+          <td>${r.parent_name}</td>
           <td><a href="mailto:${r.email}">${r.email}</a></td>
+          <td><button class="toggle-flag" data-id="${r.id}" data-field="documents_signed" data-value="${r.documents_signed}">${r.documents_signed ? badge('badge--green', 'Signed') : badge('badge--muted', 'Awaiting')}</button></td>
+          <td><button class="toggle-flag" data-id="${r.id}" data-field="initial_payment_received" data-value="${r.initial_payment_received}">${r.initial_payment_received ? badge('badge--green', 'Paid') : badge('badge--muted', 'Awaiting')}</button></td>
           <td style="white-space:nowrap">${fmt(r.enrollment_date)}</td>
           <td>${payBadge(r.payment_status)}</td>
           <td style="white-space:nowrap">${fmt(r.next_payment_due)}</td>
@@ -570,6 +627,15 @@
       `).join('');
       body.querySelectorAll('.edit-student').forEach(btn => {
         btn.addEventListener('click', () => openStudentModal(allStudents.find(s => s.id === btn.dataset.id)));
+      });
+      body.querySelectorAll('.toggle-flag').forEach(btn => {
+        btn.style.cssText = 'background:none; border:none; padding:0; cursor:pointer;';
+        btn.title = 'Click to toggle';
+        btn.addEventListener('click', async () => {
+          const newValue = btn.dataset.value !== 'true';
+          await sb.from('enrolled_students').update({ [btn.dataset.field]: newValue }).eq('id', btn.dataset.id);
+          loadStudents();
+        });
       });
     }
 
@@ -585,8 +651,7 @@
         form.studentName.value    = student.student_name || '';
         form.gradeLevel.value     = student.grade_level   || '';
         form.studentAge.value     = student.student_age   || '';
-        form.parentFirst.value    = student.parent_first || '';
-        form.parentLast.value     = student.parent_last  || '';
+        form.parentName.value     = student.parent_name  || '';
         form.email.value          = student.email        || '';
         form.phone.value          = student.phone        || '';
         form.enrollmentDate.value = student.enrollment_date   || '';
@@ -613,8 +678,7 @@
         student_name:    f.studentName.value.trim(),
         grade_level:     f.gradeLevel.value,
         student_age:     f.studentAge.value.trim(),
-        parent_first:    f.parentFirst.value.trim(),
-        parent_last:     f.parentLast.value.trim(),
+        parent_name:     f.parentName.value.trim(),
         email:           f.email.value.trim(),
         phone:           f.phone.value.trim()         || null,
         enrollment_date: f.enrollmentDate.value       || null,
