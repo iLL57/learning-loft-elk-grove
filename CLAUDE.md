@@ -127,7 +127,7 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [ ] Delete test submission (id: eaea48ce-9367-482d-9a94-a7064af21fec) from enrollment_submissions table — form is now confirmed working end-to-end in production (verified 2026-07-21), safe to delete from the admin page anytime
 - [ ] Change admin account passwords from temp values (LoftDev#2026 / LoftOwner#2026) — do via Supabase dashboard → Authentication → Users
 - [ ] Owner (info@thelearninglofteg.com) to create a personal Google Workspace email for day-to-day use; keep info@ for site/client contact
-- [ ] Program page's Enrichment Rotations cards still need real course descriptions from the owner for Canvas & Curtain and Lead & Launch (current bullet lists/tags are placeholders left over from the old Art Fusion/Life Skills copy)
+- [ ] Program page's Enrichment Studios cards still need real course descriptions from the owner for Word & World, Canvas & Curtain, and Lead & Launch (current bullet lists/tags are placeholders — Word & World's is newly drafted, Canvas & Curtain/Lead & Launch are left over from the old Art Fusion/Life Skills copy)
 - [ ] Remove the "Time" column from the Program page's daily schedule table, and remove the "Morning Move & Groove" and "Closing Circle" rows entirely
 
 ## Completed
