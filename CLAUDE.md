@@ -129,12 +129,14 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [ ] Owner (info@thelearninglofteg.com) to create a personal Google Workspace email for day-to-day use; keep info@ for site/client contact
 - [ ] Program page's Enrichment Studios cards still need real course descriptions from the owner for Word & World, Canvas & Curtain, and Lead & Launch (current bullet lists/tags are placeholders — Word & World's is newly drafted, Canvas & Curtain/Lead & Launch are left over from the old Art Fusion/Life Skills copy)
 - [ ] Remove the "Time" column from the Program page's daily schedule table, and remove the "Morning Move & Groove" and "Closing Circle" rows entirely
+- [ ] Owner wants everything mentioning "Pre-Enrollment" retired sitewide in favor of "Online Application" framing — still need to confirm scope (rename the existing interest form vs. remove it entirely in favor of going straight to the PDF enrollment forms) and exact wording before implementing; discussion got interrupted, see `enrollment-forms-download` branch for the current Pre-Enrollment Interest Form implementation this affects
+- [ ] `enrollment-forms-download` branch (uncommitted to main) has the real enrollment PDF forms (Student Enrollment Form, Fee Schedule, Liability & Medical Authorization) with a date-gated reveal on enrollment.html set for Friday, August 14, 2026, 10:00 AM Pacific — needs merging before/around that date
 
 ## Completed
 - [x] Enrollment form with dynamic per-child name & age inputs
 - [x] Supabase backend: enrollment_submissions table, RLS policies, Edge Function (submit-enrollment)
 - [x] Resend email notifications → info@thelearninglofteg.com on each new submission
-- [x] Admin dashboard (admin.html): Supabase Auth login + three tabs (Submissions, Enrolled Families, Leads & Outreach)
+- [x] Admin dashboard (admin.html): Supabase Auth login + three tabs (Submissions, Enrolled Students, Leads & Outreach)
 - [x] Submission status updates (New / Contacted / Enrolled / Declined) inline from admin
 - [x] Fixed CORS issue blocking browser fetch to Edge Function
 - [x] Custom Resend sending domain (thelearninglofteg.com) verified via Squarespace DNS; enrollment notifications now send from enrollments@thelearninglofteg.com instead of onboarding@resend.dev
@@ -145,5 +147,6 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [x] Removed all em dashes sitewide per owner's request (a tell for AI-generated content) and applied her follow-up copy edits: homepage "Who We Are" heading/paragraph, Program page hero/schedule text and rotation card bullets/tags, corrected stale "2:30 PM" hours references, fixed a pre-rebrand enrollment form dropdown
 - [x] Added Tuition & Fees, Program Calendar, and Affordability/Commitment content to `enrollment.html` from the owner's tuition doc; re-enabled all "Enroll Now" links sitewide (relabeled "Join Interest List" to accurately describe an interest form, not instant enrollment)
 - [x] Replaced the enrollment form with the owner's new Pre-Enrollment Interest Form (2026–2027 school year): single Parent/Guardian Name field, new Days-per-Week/Tuition-Exchange/Charter-Program questions, dropped outdated fields. Full stack shipped: new Supabase migration, updated `submit-enrollment` Edge Function (deployed), updated `admin.html` display — verified end-to-end with a real test submission
+- [x] Admin dashboard: added CSV export and status filters to the Submissions tab; restructured Enrolled Families into Enrolled Students (new `enrolled_students` table, one row per student with a required TK-6 grade level, payment tracking moved from per-family to per-student) with matching admin UI, grade/payment filters, and updated Add/Edit modal
 - [x] Retired "Speak & Story" per owner's request (language/culture folded into the other studios instead of taught standalone): removed the homepage card, restructured the Program page's combined rotation card into "Canvas & Curtain" only, dropped the day-alternation framing, updated the "Five"→"Four" areas count and Program page meta description
 - [x] Relabeled all "Join Interest List" / "Express Your Interest" CTAs and buttons sitewide back to "Enrollment" per owner feedback
