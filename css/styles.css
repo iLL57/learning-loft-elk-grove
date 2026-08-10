@@ -1340,6 +1340,10 @@ em { font-style: italic; }
 .admin-card__head {
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 .admin-card__head h3 { font-size: 1rem; font-family: var(--font-body); font-weight: 700; }
 

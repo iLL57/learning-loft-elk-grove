@@ -87,7 +87,19 @@
           </div>
         </div>
         <div class="admin-card">
-          <div class="admin-card__head"><h3>All Submissions</h3></div>
+          <div class="admin-card__head">
+            <h3>All Submissions</h3>
+            <div style="display:flex; align-items:center; gap:.75rem;">
+              <select id="filterSubs" style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.5rem .75rem; font-size:.82rem; font-family:var(--font-body); color:var(--text);">
+                <option value="all">All Statuses</option>
+                <option value="new">New</option>
+                <option value="contacted">Contacted</option>
+                <option value="enrolled">Enrolled</option>
+                <option value="declined">Declined</option>
+              </select>
+              <button class="btn btn--outline" id="exportSubsBtn" style="padding:.5rem 1.1rem; font-size:.82rem;">Export CSV</button>
+            </div>
+          </div>
           <div class="admin-table-wrap">
             <table class="admin-table">
               <thead>
@@ -113,7 +125,15 @@
       <div id="tab-families" class="admin-panel" style="display:none">
         <div class="admin-panel-head">
           <h3>Enrolled Families</h3>
-          <button class="btn btn--green" id="addFamilyBtn">+ Add Family</button>
+          <div style="display:flex; align-items:center; gap:.75rem;">
+            <select id="filterFamilies" style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.5rem .75rem; font-size:.82rem; font-family:var(--font-body); color:var(--text);">
+              <option value="all">All Payment Statuses</option>
+              <option value="current">Current</option>
+              <option value="pending">Pending</option>
+              <option value="overdue">Overdue</option>
+            </select>
+            <button class="btn btn--green" id="addFamilyBtn">+ Add Family</button>
+          </div>
         </div>
         <div class="admin-card">
           <div class="admin-table-wrap">
@@ -142,7 +162,16 @@
       <div id="tab-leads" class="admin-panel" style="display:none">
         <div class="admin-panel-head">
           <h3>Leads &amp; Outreach Ideas</h3>
-          <button class="btn btn--green" id="addLeadBtn">+ Add Idea</button>
+          <div style="display:flex; align-items:center; gap:.75rem;">
+            <select id="filterLeads" style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.5rem .75rem; font-size:.82rem; font-family:var(--font-body); color:var(--text);">
+              <option value="all">All Statuses</option>
+              <option value="idea">Idea</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="paused">Paused</option>
+            </select>
+            <button class="btn btn--green" id="addLeadBtn">+ Add Idea</button>
+          </div>
         </div>
         <div id="leadsGrid" class="leads-grid">
           <p class="admin-empty">Loading…</p>
@@ -357,17 +386,27 @@
     async function loadSubmissions() {
       const { data } = await sb.from('enrollment_submissions').select('*').order('created_at', { ascending: false });
       allSubs = data || [];
-      const body = document.getElementById('submissionsBody');
       document.getElementById('stat-total').textContent     = allSubs.length;
       document.getElementById('stat-new').textContent       = allSubs.filter(r => r.status === 'new').length;
       document.getElementById('stat-contacted').textContent = allSubs.filter(r => r.status === 'contacted').length;
       document.getElementById('stat-enrolled').textContent  = allSubs.filter(r => r.status === 'enrolled').length;
+      renderSubmissions();
+    }
 
-      if (!allSubs.length) {
-        body.innerHTML = '<tr><td colspan="7" class="admin-empty">No submissions yet.</td></tr>';
+    function filteredSubs() {
+      const filter = document.getElementById('filterSubs').value;
+      return filter === 'all' ? allSubs : allSubs.filter(r => r.status === filter);
+    }
+
+    function renderSubmissions() {
+      const body = document.getElementById('submissionsBody');
+      const subs = filteredSubs();
+
+      if (!subs.length) {
+        body.innerHTML = `<tr><td colspan="7" class="admin-empty">${allSubs.length ? 'No submissions match this filter.' : 'No submissions yet.'}</td></tr>`;
         return;
       }
-      body.innerHTML = allSubs.map(r => `
+      body.innerHTML = subs.map(r => `
         <tr>
           <td style="white-space:nowrap">${fmt(r.created_at)}</td>
           <td><strong>${r.parent_name}</strong></td>
@@ -396,6 +435,50 @@
         btn.addEventListener('click', () => openSubModal(allSubs.find(s => s.id === btn.dataset.id)));
       });
     }
+
+    document.getElementById('filterSubs').addEventListener('change', renderSubmissions);
+
+    function csvEscape(val) {
+      const s = (val === null || val === undefined) ? '' : String(val);
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+
+    function exportSubmissionsCSV() {
+      const columns = [
+        ['created_at',       'Date Submitted'],
+        ['parent_name',      'Parent'],
+        ['email',            'Email'],
+        ['phone',            'Phone'],
+        ['child_name',       'Child(ren)'],
+        ['child_age',        'Age(s)'],
+        ['days_interest',    'Days Interested'],
+        ['day_preference',   'Day Preference'],
+        ['tuition_exchange', 'Tuition Exchange'],
+        ['charter_program',  'Charter / Independent Study'],
+        ['hear_about',       'Heard About Us'],
+        ['message',          'Message'],
+        ['status',           'Status'],
+      ];
+
+      const header = columns.map(([, label]) => csvEscape(label)).join(',');
+      const rows = filteredSubs().map(r => columns.map(([key]) =>
+        csvEscape(key === 'created_at' ? fmt(r[key]) : r[key])
+      ).join(','));
+
+      const csv = [header, ...rows].join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const today = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `learning-loft-submissions-${today}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('exportSubsBtn').addEventListener('click', exportSubmissionsCSV);
 
     function openSubModal(r) {
       document.getElementById('modalParentName').textContent = r.parent_name;
@@ -426,12 +509,22 @@
     async function loadFamilies() {
       const { data } = await sb.from('enrolled_families').select('*').order('created_at', { ascending: false });
       allFamilies = data || [];
+      renderFamilies();
+    }
+
+    function filteredFamilies() {
+      const filter = document.getElementById('filterFamilies').value;
+      return filter === 'all' ? allFamilies : allFamilies.filter(r => r.payment_status === filter);
+    }
+
+    function renderFamilies() {
       const body = document.getElementById('familiesBody');
-      if (!allFamilies.length) {
-        body.innerHTML = '<tr><td colspan="8" class="admin-empty">No enrolled families yet.</td></tr>';
+      const families = filteredFamilies();
+      if (!families.length) {
+        body.innerHTML = `<tr><td colspan="8" class="admin-empty">${allFamilies.length ? 'No families match this filter.' : 'No enrolled families yet.'}</td></tr>`;
         return;
       }
-      body.innerHTML = allFamilies.map(r => `
+      body.innerHTML = families.map(r => `
         <tr>
           <td><strong>${r.parent_first} ${r.parent_last}</strong></td>
           <td><a href="mailto:${r.email}">${r.email}</a></td>
@@ -449,6 +542,7 @@
     }
 
     document.getElementById('addFamilyBtn').addEventListener('click', () => openFamilyModal(null));
+    document.getElementById('filterFamilies').addEventListener('change', renderFamilies);
 
     function openFamilyModal(fam) {
       const form = document.getElementById('familyForm');
@@ -507,12 +601,22 @@
     async function loadLeads() {
       const { data } = await sb.from('leads').select('*').order('created_at', { ascending: false });
       allLeads = data || [];
+      renderLeads();
+    }
+
+    function filteredLeads() {
+      const filter = document.getElementById('filterLeads').value;
+      return filter === 'all' ? allLeads : allLeads.filter(r => r.status === filter);
+    }
+
+    function renderLeads() {
       const grid = document.getElementById('leadsGrid');
-      if (!allLeads.length) {
-        grid.innerHTML = '<p class="admin-empty" style="grid-column:1/-1">No leads yet — add your first outreach idea!</p>';
+      const leads = filteredLeads();
+      if (!leads.length) {
+        grid.innerHTML = `<p class="admin-empty" style="grid-column:1/-1">${allLeads.length ? 'No leads match this filter.' : 'No leads yet — add your first outreach idea!'}</p>`;
         return;
       }
-      grid.innerHTML = allLeads.map(r => `
+      grid.innerHTML = leads.map(r => `
         <div class="lead-card">
           <div class="lead-card__head">
             <div>
@@ -532,6 +636,7 @@
     }
 
     document.getElementById('addLeadBtn').addEventListener('click', () => openLeadModal(null));
+    document.getElementById('filterLeads').addEventListener('change', renderLeads);
 
     function openLeadModal(lead) {
       const form = document.getElementById('leadForm');
