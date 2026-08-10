@@ -127,7 +127,7 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [ ] Delete test submission (id: eaea48ce-9367-482d-9a94-a7064af21fec) from enrollment_submissions table — form is now confirmed working end-to-end in production (verified 2026-07-21), safe to delete from the admin page anytime
 - [ ] Change admin account passwords from temp values (LoftDev#2026 / LoftOwner#2026) — do via Supabase dashboard → Authentication → Users
 - [ ] Owner (info@thelearninglofteg.com) to create a personal Google Workspace email for day-to-day use; keep info@ for site/client contact
-- [ ] Program page's Enrichment Rotations cards still need real course descriptions from the owner for Speak & Story/Canvas & Curtain and Lead & Launch (current bullet lists/tags are placeholders left over from the old Art Fusion/Life Skills copy)
+- [ ] Program page's Enrichment Rotations cards still need real course descriptions from the owner for Canvas & Curtain and Lead & Launch (current bullet lists/tags are placeholders left over from the old Art Fusion/Life Skills copy)
 - [ ] Remove the "Time" column from the Program page's daily schedule table, and remove the "Morning Move & Groove" and "Closing Circle" rows entirely
 
 ## Completed
@@ -145,4 +145,5 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [x] Removed all em dashes sitewide per owner's request (a tell for AI-generated content) and applied her follow-up copy edits: homepage "Who We Are" heading/paragraph, Program page hero/schedule text and rotation card bullets/tags, corrected stale "2:30 PM" hours references, fixed a pre-rebrand enrollment form dropdown
 - [x] Added Tuition & Fees, Program Calendar, and Affordability/Commitment content to `enrollment.html` from the owner's tuition doc; re-enabled all "Enroll Now" links sitewide (relabeled "Join Interest List" to accurately describe an interest form, not instant enrollment)
 - [x] Replaced the enrollment form with the owner's new Pre-Enrollment Interest Form (2026–2027 school year): single Parent/Guardian Name field, new Days-per-Week/Tuition-Exchange/Charter-Program questions, dropped outdated fields. Full stack shipped: new Supabase migration, updated `submit-enrollment` Edge Function (deployed), updated `admin.html` display — verified end-to-end with a real test submission
+- [x] Retired "Speak & Story" per owner's request (language/culture folded into the other studios instead of taught standalone): removed the homepage card, restructured the Program page's combined rotation card into "Canvas & Curtain" only, dropped the day-alternation framing, updated the "Five"→"Four" areas count and Program page meta description
 - [x] Relabeled all "Join Interest List" / "Express Your Interest" CTAs and buttons sitewide back to "Enrollment" per owner feedback
