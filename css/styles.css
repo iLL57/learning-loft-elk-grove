@@ -758,7 +758,8 @@ em { font-style: italic; }
   transition: transform .25s, box-shadow .25s;
 }
 .rotation-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-.rotation-card__header { padding: 2rem 2rem 1.5rem; display: flex; align-items: flex-start; gap: 1rem; }
+.rotation-card__header { padding: 2rem 2rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+.rotation-card__header h3 { margin: 0; }
 .rotation-card__icon {
   width: 52px;
   height: 52px;
