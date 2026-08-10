@@ -30,6 +30,75 @@ async function sendEmail(resendKey: string, to: string, subject: string, html: s
   }
 }
 
+// One SignWell document per student (parent signs on the child's behalf).
+// Uses "documents from template" so field placement lives in the SignWell
+// template the owner builds from the 3 enrollment PDFs, not in this code.
+async function createSignWellDocument(
+  apiKey: string,
+  templateId: string,
+  testMode: boolean,
+  recipientName: string,
+  recipientEmail: string,
+): Promise<{ id: string; signingUrl: string } | null> {
+  try {
+    const res = await fetch("https://www.signwell.com/api/v1/document_templates/documents/", {
+      method: "POST",
+      headers: { "X-Api-Key": apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        template_ids: [templateId],
+        test_mode: testMode,
+        recipients: [{ id: "1", name: recipientName, email: recipientEmail }],
+      }),
+    });
+    if (!res.ok) {
+      console.error("SignWell create document failed:", await res.text());
+      return null;
+    }
+    const doc = await res.json();
+    return { id: doc.id, signingUrl: doc.recipients?.[0]?.signing_url || "" };
+  } catch (err) {
+    console.error("SignWell request failed:", err);
+    return null;
+  }
+}
+
+// One Square quick-pay link per student for the initial enrollment fee.
+async function createSquarePaymentLink(
+  accessToken: string,
+  locationId: string,
+  feeCents: number,
+  idempotencyKey: string,
+  studentName: string,
+): Promise<{ id: string; orderId: string; url: string } | null> {
+  try {
+    const res = await fetch("https://connect.squareup.com/v2/online-checkout/payment-links", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        idempotency_key: idempotencyKey,
+        quick_pay: {
+          name: `The Learning Loft — Initial Enrollment Fee (${studentName})`,
+          price_money: { amount: feeCents, currency: "USD" },
+          location_id: locationId,
+        },
+      }),
+    });
+    if (!res.ok) {
+      console.error("Square create payment link failed:", await res.text());
+      return null;
+    }
+    const body = await res.json();
+    const link = body.payment_link;
+    return { id: link.id, orderId: link.order_id, url: link.url };
+  } catch (err) {
+    console.error("Square request failed:", err);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -112,10 +181,11 @@ Deno.serve(async (req) => {
 
     if (action === "send_package") {
       // Create one enrolled_students row per child, awaiting signature + payment.
-      // TODO (Phase 2): create a SignWell signing request per student here and
-      // store the resulting document/link on each row instead of a placeholder.
-      // TODO (Phase 3): create a Square payment link for the initial enrollment
-      // fee here instead of a placeholder.
+      // SignWell/Square calls below are best-effort: if credentials aren't set
+      // yet (Phase 2/3 not wired up) or a call fails, the student row is still
+      // created and the applicant gets a placeholder message instead of a link.
+      let linkRows: { studentName: string; signingUrl: string; paymentUrl: string }[] = [];
+
       if (studentList.length) {
         const missingGrade = studentList.find(s => !confirmedGrades[s.id]);
         if (missingGrade) {
@@ -124,7 +194,7 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        const { error: insertError } = await supabase.from("enrolled_students").insert(
+        const { data: inserted, error: insertError } = await supabase.from("enrolled_students").insert(
           studentList.map(s => ({
             parent_name: submission.parent_name,
             email: submission.email,
@@ -137,20 +207,73 @@ Deno.serve(async (req) => {
             initial_payment_received: false,
             submission_id: submission.id,
           }))
-        );
+        ).select();
         if (insertError) throw new Error(JSON.stringify(insertError));
+
+        const signwellApiKey = Deno.env.get("SIGNWELL_API_KEY");
+        const signwellTemplateId = Deno.env.get("SIGNWELL_TEMPLATE_ID");
+        const signwellTestMode = Deno.env.get("SIGNWELL_TEST_MODE") !== "false"; // default true (safe) until owner confirms go-live
+        const squareAccessToken = Deno.env.get("SQUARE_ACCESS_TOKEN");
+        const squareLocationId = Deno.env.get("SQUARE_LOCATION_ID");
+        const squareFeeCents = Number(Deno.env.get("SQUARE_INITIAL_FEE_CENTS") || "0");
+
+        for (const row of inserted || []) {
+          const updates: Record<string, unknown> = {};
+          let signingUrl = "";
+          let paymentUrl = "";
+
+          if (signwellApiKey && signwellTemplateId) {
+            const doc = await createSignWellDocument(
+              signwellApiKey, signwellTemplateId, signwellTestMode,
+              submission.parent_name, submission.email
+            );
+            if (doc) {
+              updates.signwell_document_id = doc.id;
+              updates.signwell_signing_url = doc.signingUrl;
+              signingUrl = doc.signingUrl;
+            }
+          }
+
+          if (squareAccessToken && squareLocationId && squareFeeCents > 0) {
+            const link = await createSquarePaymentLink(
+              squareAccessToken, squareLocationId, squareFeeCents, row.id, row.student_name
+            );
+            if (link) {
+              updates.square_payment_link_id = link.id;
+              updates.square_order_id = link.orderId;
+              updates.square_payment_link_url = link.url;
+              paymentUrl = link.url;
+            }
+          }
+
+          if (Object.keys(updates).length) {
+            await supabase.from("enrolled_students").update(updates).eq("id", row.id);
+          }
+
+          linkRows.push({ studentName: row.student_name, signingUrl, paymentUrl });
+        }
       }
 
       await supabase.from("enrollment_submissions").update({ status: "package_sent" }).eq("id", submissionId);
 
       if (resendKey) {
+        const perStudentHtml = linkRows.length
+          ? linkRows.map(l => `
+              <li style="margin-bottom:.75rem;">
+                <strong>${l.studentName}</strong><br>
+                ${l.signingUrl ? `<a href="${l.signingUrl}">Sign enrollment forms</a>` : "Signing link coming shortly by email."}
+                ${l.paymentUrl ? ` &middot; <a href="${l.paymentUrl}">Pay initial fee</a>` : ""}
+              </li>
+            `).join("")
+          : studentsListHtml;
+
         await sendEmail(resendKey, submission.email,
           "Your Enrollment Package — The Learning Loft of Elk Grove",
           `
             <h2>Welcome to The Learning Loft, ${submission.parent_name}!</h2>
             <p>We're delighted to move forward with enrollment for:</p>
-            <ul>${studentsListHtml}</ul>
-            <p>Our team will follow up shortly with a signing link for each child's enrollment paperwork and a link to submit your initial payment. Once both are complete, your child's spot will be confirmed.</p>
+            <ul>${perStudentHtml}</ul>
+            <p>Each child's enrollment paperwork and initial payment must be completed before their spot is confirmed. If a link above isn't ready yet, our team will follow up shortly by email.</p>
             <p>Questions in the meantime? Just reply to this email or reach out at info@thelearninglofteg.com.</p>
             <p style="margin-top:1.5rem;">Warmly,<br>The Learning Loft of Elk Grove</p>
           `
