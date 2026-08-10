@@ -69,21 +69,25 @@
       <!-- ── Submissions Tab ── -->
       <div id="tab-submissions" class="admin-panel">
         <div class="admin-stats">
-          <div class="admin-stat-card">
+          <div class="admin-stat-card" data-filter="all">
             <span class="admin-stat-card__val" id="stat-total">—</span>
             <span class="admin-stat-card__label">Total</span>
           </div>
-          <div class="admin-stat-card">
+          <div class="admin-stat-card" data-filter="new">
             <span class="admin-stat-card__val" id="stat-new">—</span>
             <span class="admin-stat-card__label">New</span>
           </div>
-          <div class="admin-stat-card">
+          <div class="admin-stat-card" data-filter="package_sent">
             <span class="admin-stat-card__val" id="stat-package_sent">—</span>
             <span class="admin-stat-card__label">Package Sent</span>
           </div>
-          <div class="admin-stat-card">
+          <div class="admin-stat-card" data-filter="waitlisted">
             <span class="admin-stat-card__val" id="stat-waitlisted">—</span>
             <span class="admin-stat-card__label">Waitlisted</span>
+          </div>
+          <div class="admin-stat-card" data-filter="rejected">
+            <span class="admin-stat-card__val" id="stat-rejected">—</span>
+            <span class="admin-stat-card__label">Rejected</span>
           </div>
         </div>
         <div class="admin-card">
@@ -411,20 +415,28 @@
     // ── Submissions ──
     let allSubs = [];
     let studentsBySubmission = {};
+    let enrolledBySubmission = {};
     async function loadSubmissions() {
-      const [{ data: subs }, { data: students }] = await Promise.all([
+      const [{ data: subs }, { data: students }, { data: enrolled }] = await Promise.all([
         sb.from('enrollment_submissions').select('*').order('created_at', { ascending: false }),
         sb.from('submission_students').select('*'),
+        sb.from('enrolled_students').select('*'),
       ]);
       allSubs = subs || [];
       studentsBySubmission = {};
       (students || []).forEach(s => {
         (studentsBySubmission[s.submission_id] ||= []).push(s);
       });
+      enrolledBySubmission = {};
+      (enrolled || []).forEach(s => {
+        if (!s.submission_id) return;
+        (enrolledBySubmission[s.submission_id] ||= []).push(s);
+      });
       document.getElementById('stat-total').textContent          = allSubs.length;
       document.getElementById('stat-new').textContent            = allSubs.filter(r => r.status === 'new').length;
       document.getElementById('stat-package_sent').textContent   = allSubs.filter(r => r.status === 'package_sent').length;
       document.getElementById('stat-waitlisted').textContent     = allSubs.filter(r => r.status === 'waitlisted').length;
+      document.getElementById('stat-rejected').textContent       = allSubs.filter(r => r.status === 'rejected').length;
       renderSubmissions();
     }
 
@@ -436,6 +448,16 @@
       const list = studentsFor(submissionId);
       if (!list.length) return '—';
       return list.map(s => `${s.student_name} (${GRADE_LABELS[s.grade_level] || s.grade_level})`).join(', ');
+    }
+
+    function progressLabel(submissionId) {
+      const list = enrolledBySubmission[submissionId] || [];
+      if (!list.length) return '';
+      const signed = list.filter(s => s.documents_signed).length;
+      const paid   = list.filter(s => s.initial_payment_received).length;
+      const allDone = signed === list.length && paid === list.length;
+      const color = allDone ? 'var(--green-dark)' : 'var(--text-muted)';
+      return `<div style="font-size:.78rem; color:${color}; margin-top:.25rem; white-space:nowrap;">${allDone ? '✓ ' : ''}${signed}/${list.length} signed · ${paid}/${list.length} paid</div>`;
     }
 
     function filteredSubs() {
@@ -460,7 +482,7 @@
           <td><strong>${r.parent_name}</strong></td>
           <td><a href="mailto:${r.email}">${r.email}</a></td>
           <td>${studentsLabel(r.id)}</td>
-          <td>${statusBadge(r.status)}</td>
+          <td>${statusBadge(r.status)}${r.status === 'package_sent' ? progressLabel(r.id) : ''}</td>
           <td><button class="admin-link view-sub" data-id="${r.id}">View</button></td>
         </tr>
       `).join('');
@@ -471,6 +493,14 @@
     }
 
     document.getElementById('filterSubs').addEventListener('change', renderSubmissions);
+
+    document.querySelectorAll('.admin-stat-card[data-filter]').forEach(card => {
+      card.addEventListener('click', () => {
+        document.getElementById('filterSubs').value = card.dataset.filter;
+        renderSubmissions();
+        document.getElementById('submissionsBody').closest('.admin-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
 
     async function callAdminAction(submissionId, action) {
       const { data: { session } } = await sb.auth.getSession();
@@ -535,9 +565,20 @@
     function openSubModal(r) {
       document.getElementById('modalParentName').textContent = r.parent_name;
       const students = studentsFor(r.id);
-      const studentsHtml = students.length
-        ? `<ul style="margin:.3rem 0 0; padding-left:1.1rem;">${students.map(s => `<li>${s.student_name} — ${GRADE_LABELS[s.grade_level] || s.grade_level}</li>`).join('')}</ul>`
-        : '—';
+      const enrolled = enrolledBySubmission[r.id] || [];
+      let studentsHtml;
+      if (enrolled.length) {
+        studentsHtml = `<ul style="margin:.3rem 0 0; padding-left:0; list-style:none; display:flex; flex-direction:column; gap:.4rem;">${enrolled.map(s => `
+          <li style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;">
+            <span>${s.student_name} — ${GRADE_LABELS[s.grade_level] || s.grade_level}</span>
+            ${s.documents_signed ? badge('badge--green', 'Signed') : badge('badge--muted', 'Awaiting Signature')}
+            ${s.initial_payment_received ? badge('badge--green', 'Paid') : badge('badge--muted', 'Awaiting Payment')}
+          </li>`).join('')}</ul>`;
+      } else if (students.length) {
+        studentsHtml = `<ul style="margin:.3rem 0 0; padding-left:1.1rem;">${students.map(s => `<li>${s.student_name} — ${GRADE_LABELS[s.grade_level] || s.grade_level}</li>`).join('')}</ul>`;
+      } else {
+        studentsHtml = '—';
+      }
       const isDecided = r.status !== 'new';
       document.getElementById('modalBody').innerHTML = `
         <div class="admin-detail-grid">

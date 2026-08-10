@@ -1301,7 +1301,7 @@ em { font-style: italic; }
 /* Stats row */
 .admin-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -1314,7 +1314,10 @@ em { font-style: italic; }
   flex-direction: column;
   gap: .3rem;
   box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: box-shadow .18s, border-color .18s;
 }
+.admin-stat-card:hover { box-shadow: var(--shadow-md); border-color: var(--green); }
 .admin-stat-card__val {
   font-family: var(--font-head);
   font-size: 2.2rem;
