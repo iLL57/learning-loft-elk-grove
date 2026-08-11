@@ -70,15 +70,18 @@ async function createSignWellDocument(
 }
 
 // One Square quick-pay link per student for the initial enrollment fee.
+// Sandbox and production are entirely separate base URLs in Square's API,
+// not just different tokens against the same host.
 async function createSquarePaymentLink(
   accessToken: string,
   locationId: string,
   feeCents: number,
   idempotencyKey: string,
   studentName: string,
+  baseUrl: string,
 ): Promise<{ id: string; orderId: string; url: string } | null> {
   try {
-    const res = await fetch("https://connect.squareup.com/v2/online-checkout/payment-links", {
+    const res = await fetch(`${baseUrl}/v2/online-checkout/payment-links`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${accessToken}`,
@@ -223,6 +226,9 @@ Deno.serve(async (req) => {
         const squareAccessToken = Deno.env.get("SQUARE_ACCESS_TOKEN");
         const squareLocationId = Deno.env.get("SQUARE_LOCATION_ID");
         const squareFeeCents = Number(Deno.env.get("SQUARE_INITIAL_FEE_CENTS") || "0");
+        const squareBaseUrl = Deno.env.get("SQUARE_ENVIRONMENT") === "sandbox"
+          ? "https://connect.squareupsandbox.com"
+          : "https://connect.squareup.com";
 
         for (const row of inserted || []) {
           const updates: Record<string, unknown> = {};
@@ -252,7 +258,7 @@ Deno.serve(async (req) => {
 
           if (squareAccessToken && squareLocationId && squareFeeCents > 0) {
             const link = await createSquarePaymentLink(
-              squareAccessToken, squareLocationId, squareFeeCents, row.id, row.student_name
+              squareAccessToken, squareLocationId, squareFeeCents, row.id, row.student_name, squareBaseUrl
             );
             if (link) {
               updates.square_payment_link_id = link.id;
