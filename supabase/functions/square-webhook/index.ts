@@ -27,6 +27,13 @@ function timingSafeEqual(a: string, b: string): boolean {
 // Supabase auth header, so signature verification below is what stands in
 // for auth.
 Deno.serve(async (req) => {
+  // Square (and most webhook providers) send a GET/HEAD reachability check
+  // when a webhook URL is first added in the dashboard, before any real
+  // event is ever sent. Accept those so registration succeeds; real events
+  // arrive as POST and go through full signature verification below.
+  if (req.method === "GET" || req.method === "HEAD") {
+    return new Response("OK", { status: 200 });
+  }
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
