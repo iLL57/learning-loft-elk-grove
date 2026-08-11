@@ -39,6 +39,7 @@ async function createSignWellDocument(
   testMode: boolean,
   recipientName: string,
   recipientEmail: string,
+  templateFields: Record<string, string>,
 ): Promise<{ id: string; signingUrl: string } | null> {
   try {
     const res = await fetch("https://www.signwell.com/api/v1/document_templates/documents/", {
@@ -47,7 +48,13 @@ async function createSignWellDocument(
       body: JSON.stringify({
         template_ids: [templateId],
         test_mode: testMode,
-        recipients: [{ id: "1", name: recipientName, email: recipientEmail }],
+        recipients: [{
+          id: "1",
+          name: recipientName,
+          email: recipientEmail,
+          placeholder_name: "Parent/Guardian",
+        }],
+        template_fields: Object.entries(templateFields).map(([api_id, value]) => ({ api_id, value })),
       }),
     });
     if (!res.ok) {
@@ -225,7 +232,16 @@ Deno.serve(async (req) => {
           if (signwellApiKey && signwellTemplateId) {
             const doc = await createSignWellDocument(
               signwellApiKey, signwellTemplateId, signwellTestMode,
-              submission.parent_name, submission.email
+              submission.parent_name, submission.email,
+              {
+                student_name: row.student_name,
+                student_name_liability: row.student_name,
+                parent_name: submission.parent_name,
+                parent_phone: submission.phone || "",
+                parent_email: submission.email,
+                parent_printed_name: submission.parent_name,
+                parent_printed_name_liability: submission.parent_name,
+              }
             );
             if (doc) {
               updates.signwell_document_id = doc.id;
