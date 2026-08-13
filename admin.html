@@ -149,6 +149,7 @@
             <button class="btn btn--green" id="addStudentBtn">+ Add Student</button>
           </div>
         </div>
+        <div id="gradeCapacityPanel" style="display:flex; flex-wrap:wrap; gap:.6rem; margin-bottom:1.25rem;"></div>
         <div class="admin-card">
           <div class="admin-table-wrap">
             <table class="admin-table">
@@ -395,6 +396,31 @@
       return `<span class="badge ${cls}">${label}</span>`;
     }
     const GRADE_LABELS = { TK: 'TK', K: 'K', '1': '1st', '2': '2nd', '3': '3rd', '4': '4th', '5': '5th', '6': '6th' };
+    const GRADE_ORDER = ['TK', 'K', '1', '2', '3', '4', '5', '6'];
+    const GRADE_CAPACITY = 10;
+
+    function gradeCounts(students) {
+      const counts = {};
+      GRADE_ORDER.forEach(g => counts[g] = 0);
+      (students || []).forEach(s => { if (counts[s.grade_level] !== undefined) counts[s.grade_level]++; });
+      return counts;
+    }
+
+    function renderGradeCapacityPanel() {
+      const panel = document.getElementById('gradeCapacityPanel');
+      if (!panel) return;
+      const counts = gradeCounts(allStudents);
+      panel.innerHTML = GRADE_ORDER.map(g => {
+        const count = counts[g];
+        const full = count >= GRADE_CAPACITY;
+        return `
+          <div style="display:flex; align-items:center; gap:.4rem; padding:.5rem .85rem; border-radius:var(--r-sm); border:1px solid ${full ? 'var(--terracotta-dark)' : 'var(--border)'}; background:${full ? 'var(--terracotta-light)' : 'var(--white-warm)'};">
+            <strong style="font-size:.85rem; color:var(--text);">${GRADE_LABELS[g]}</strong>
+            <span style="font-size:.82rem; color:${full ? 'var(--terracotta-dark)' : 'var(--text-muted)'};">${count}/${GRADE_CAPACITY}${full ? ' FULL' : ''}</span>
+          </div>
+        `;
+      }).join('');
+    }
     function statusBadge(s) {
       return {
         new:           badge('badge--blue',  'New'),
@@ -515,7 +541,9 @@
       if (!res.ok) {
         const body = await res.text();
         console.error('admin-submission-action failed:', res.status, body);
-        throw new Error('Request failed');
+        let message = 'Request failed';
+        try { message = JSON.parse(body).error || message; } catch (_) {}
+        throw new Error(message);
       }
     }
 
@@ -616,30 +644,40 @@
             loadSubmissions();
             loadStudents();
           } catch (err) {
-            alert('Something went wrong. Please try again.');
+            alert(err.message || 'Something went wrong. Please try again.');
             buttons.forEach(b => b.disabled = false);
           }
         };
 
-        document.getElementById('actionSendPackage').addEventListener('click', () => {
-          const gradeOptions = ['TK','K','1','2','3','4','5','6']
-            .map(g => `<option value="${g}">${GRADE_LABELS[g]}</option>`).join('');
+        document.getElementById('actionSendPackage').addEventListener('click', async () => {
+          // Fetch fresh counts right before showing the dropdown so the
+          // capacity shown here can't be stale relative to other admin activity.
+          await loadStudents();
+          const counts = gradeCounts(allStudents);
+          const gradeOptionsFor = (currentGuess) => GRADE_ORDER.map(g => {
+            const full = counts[g] >= GRADE_CAPACITY;
+            return `<option value="${g}" ${currentGuess === g && !full ? 'selected' : ''} ${full ? 'disabled' : ''}>${GRADE_LABELS[g]} (${counts[g]}/${GRADE_CAPACITY}${full ? ' — FULL' : ''})</option>`;
+          }).join('');
           document.getElementById('actionBar').innerHTML = `
             <p style="font-size:.85rem; font-weight:700; color:var(--text); margin-bottom:.75rem;">Confirm each student's grade level before sending the package:</p>
             <div style="display:flex; flex-direction:column; gap:.75rem; margin-bottom:1rem;">
-              ${students.map(s => `
+              ${students.map(s => {
+                const guessIsFull = s.grade_level && counts[s.grade_level] >= GRADE_CAPACITY;
+                return `
                 <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
                   <div style="min-width:160px;">
                     <strong>${s.student_name}</strong>
                     ${s.notes ? `<div style="font-size:.78rem; color:var(--text-muted);">${s.notes}</div>` : ''}
                   </div>
                   <select class="confirm-grade" data-student-id="${s.id}" required style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.4rem .6rem; font-family:var(--font-body); font-size:.85rem;">
-                    <option value="" disabled ${s.grade_level ? '' : 'selected'}>Select grade</option>
-                    ${['TK','K','1','2','3','4','5','6'].map(g => `<option value="${g}" ${s.grade_level === g ? 'selected' : ''}>${GRADE_LABELS[g]}</option>`).join('')}
+                    <option value="" disabled ${(!s.grade_level || guessIsFull) ? 'selected' : ''}>Select grade</option>
+                    ${gradeOptionsFor(s.grade_level)}
                   </select>
                 </div>
-              `).join('')}
+              `;
+              }).join('')}
             </div>
+            <p style="font-size:.78rem; color:var(--text-muted); margin-bottom:1rem;">Grades already at ${GRADE_CAPACITY} students are shown as FULL and can't be selected.</p>
             <div style="display:flex; gap:.6rem;">
               <button class="btn btn--green" id="confirmSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;">Confirm &amp; Send Package</button>
               <button class="btn btn--outline" id="cancelSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;">Cancel</button>
@@ -664,7 +702,7 @@
               loadSubmissions();
               loadStudents();
             } catch (err) {
-              alert('Something went wrong. Please try again.');
+              alert(err.message || 'Something went wrong. Please try again.');
               document.getElementById('confirmSendPackage').disabled = false;
               document.getElementById('cancelSendPackage').disabled = false;
             }
@@ -685,6 +723,7 @@
       const { data } = await sb.from('enrolled_students').select('*').order('created_at', { ascending: false });
       allStudents = data || [];
       renderStudents();
+      renderGradeCapacityPanel();
     }
 
     function filteredStudents() {

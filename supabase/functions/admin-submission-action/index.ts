@@ -10,6 +10,8 @@ const GRADE_LABELS: Record<string, string> = {
   TK: "TK", K: "K", "1": "1st", "2": "2nd", "3": "3rd", "4": "4th", "5": "5th", "6": "6th",
 };
 
+const GRADE_CAPACITY = 10;
+
 async function sendEmail(resendKey: string, to: string, subject: string, html: string) {
   try {
     await fetch("https://api.resend.com/emails", {
@@ -204,6 +206,34 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
+
+        // Enforce the per-grade capacity, counting both already-enrolled
+        // students and every student in this same request targeting the
+        // same grade (e.g. two siblings both confirmed into "K").
+        const { data: existingGradeRows } = await supabase
+          .from("enrolled_students")
+          .select("grade_level");
+        const existingCountByGrade: Record<string, number> = {};
+        for (const row of existingGradeRows || []) {
+          existingCountByGrade[row.grade_level] = (existingCountByGrade[row.grade_level] || 0) + 1;
+        }
+        const pendingCountByGrade: Record<string, number> = {};
+        for (const s of studentList) {
+          const g = confirmedGrades[s.id];
+          pendingCountByGrade[g] = (pendingCountByGrade[g] || 0) + 1;
+        }
+        const fullGrades = Object.entries(pendingCountByGrade)
+          .filter(([grade, pendingCount]) => (existingCountByGrade[grade] || 0) + pendingCount > GRADE_CAPACITY)
+          .map(([grade]) => GRADE_LABELS[grade] || grade);
+        if (fullGrades.length) {
+          return new Response(JSON.stringify({
+            error: `Grade level${fullGrades.length > 1 ? "s" : ""} at capacity (max ${GRADE_CAPACITY} per grade): ${fullGrades.join(", ")}`
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
         const { data: inserted, error: insertError } = await supabase.from("enrolled_students").insert(
           studentList.map(s => ({
             parent_name: submission.parent_name,
