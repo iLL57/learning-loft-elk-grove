@@ -34,6 +34,50 @@
         <p id="loginError" class="admin-error" style="display:none"></p>
         <button type="submit" class="form-submit">Sign In</button>
       </form>
+      <p style="text-align:center; margin-top:1rem;">
+        <a href="#" id="forgotPasswordLink" style="font-size:.85rem; color:var(--text-muted);">Forgot your password?</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Forgot Password Screen ── -->
+  <div id="forgotPasswordScreen" class="admin-login" style="display:none">
+    <div class="admin-login__card">
+      <img src="images/primary-logo-warm-web-transparent.png" alt="The Learning Loft" class="admin-login__logo">
+      <h2>Reset Password</h2>
+      <p>Enter your email and we'll send you a link to set a new password.</p>
+      <form id="forgotPasswordForm">
+        <div class="form-group">
+          <label for="forgotEmail">Email</label>
+          <input type="email" id="forgotEmail" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <p id="forgotPasswordMessage" class="admin-error" style="display:none"></p>
+        <button type="submit" class="form-submit">Send Reset Link</button>
+      </form>
+      <p style="text-align:center; margin-top:1rem;">
+        <a href="#" id="backToLoginLink" style="font-size:.85rem; color:var(--text-muted);">Back to sign in</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Set New Password Screen (reached via emailed reset link) ── -->
+  <div id="resetPasswordScreen" class="admin-login" style="display:none">
+    <div class="admin-login__card">
+      <img src="images/primary-logo-warm-web-transparent.png" alt="The Learning Loft" class="admin-login__logo">
+      <h2>Set Your Password</h2>
+      <p>Choose a new password for your admin account.</p>
+      <form id="resetPasswordForm">
+        <div class="form-group">
+          <label for="newPassword">New Password</label>
+          <input type="password" id="newPassword" placeholder="••••••••" required autocomplete="new-password" minlength="8" />
+        </div>
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" placeholder="••••••••" required autocomplete="new-password" minlength="8" />
+        </div>
+        <p id="resetPasswordError" class="admin-error" style="display:none"></p>
+        <button type="submit" class="form-submit">Set Password</button>
+      </form>
     </div>
   </div>
 
@@ -49,6 +93,7 @@
         </div>
         <div class="admin-topbar__right">
           <span id="adminUserEmail" class="admin-topbar__user"></span>
+          <button id="inviteAdminBtn" class="admin-topbar__logout" style="margin-right:.5rem;">+ Invite Admin</button>
           <button id="logoutBtn" class="admin-topbar__logout">Sign Out</button>
         </div>
       </div>
@@ -346,15 +391,36 @@
     );
 
     // ── Auth ──
-    sb.auth.onAuthStateChange((_, session) => {
+    function showScreen(name) {
+      ['loginScreen', 'forgotPasswordScreen', 'resetPasswordScreen', 'adminApp'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
+      document.getElementById(name).style.display = (name === 'adminApp') ? 'block' : 'flex';
+    }
+
+    // Supabase's PASSWORD_RECOVERY auth event is unreliable in practice (a
+    // known issue — often only SIGNED_IN fires for recovery/invite links
+    // too), so the URL itself is the source of truth for "this session
+    // arrived via a recovery or invite link and still needs a password set."
+    // Mutable (not const): cleared once the password is actually set, so a
+    // later TOKEN_REFRESHED event doesn't bounce the user back to this screen.
+    let isPasswordSetupLink = /[?&#]type=(recovery|invite)\b/.test(window.location.href);
+
+    sb.auth.onAuthStateChange((event, session) => {
+      if (session && isPasswordSetupLink) {
+        // Safe to strip the one-time token from the URL now — Supabase's own
+        // client already consumed it to establish this session. Stripping it
+        // any earlier risks racing the SDK's own (async) URL parsing.
+        history.replaceState(null, '', window.location.pathname);
+        showScreen('resetPasswordScreen');
+        return;
+      }
       if (session) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('adminApp').style.display = 'block';
+        showScreen('adminApp');
         document.getElementById('adminUserEmail').textContent = session.user.email;
         loadAll();
       } else {
-        document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('adminApp').style.display = 'none';
+        showScreen('loginScreen');
       }
     });
 
@@ -375,7 +441,84 @@
       }
     });
 
+    document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      showScreen('forgotPasswordScreen');
+    });
+
+    document.getElementById('backToLoginLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      showScreen('loginScreen');
+    });
+
+    document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const msg = document.getElementById('forgotPasswordMessage');
+      const email = document.getElementById('forgotEmail').value.trim();
+      btn.textContent = 'Sending…'; btn.disabled = true;
+      msg.style.display = 'none';
+      await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + window.location.pathname,
+      });
+      // Same message whether or not the email is actually registered —
+      // doesn't reveal which admin emails exist to an unauthenticated visitor.
+      msg.style.color = 'var(--green-dark)';
+      msg.textContent = 'If that email is registered, a reset link is on its way.';
+      msg.style.display = 'block';
+      btn.textContent = 'Send Reset Link'; btn.disabled = false;
+    });
+
+    document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const err = document.getElementById('resetPasswordError');
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      err.style.display = 'none';
+      if (newPassword !== confirmPassword) {
+        err.textContent = 'Passwords do not match.';
+        err.style.display = 'block';
+        return;
+      }
+      btn.textContent = 'Setting password…'; btn.disabled = true;
+      const { error } = await sb.auth.updateUser({ password: newPassword });
+      if (error) {
+        err.textContent = error.message || 'Something went wrong. Please try again.';
+        err.style.display = 'block';
+        btn.textContent = 'Set Password'; btn.disabled = false;
+        return;
+      }
+      isPasswordSetupLink = false;
+      const { data: { session } } = await sb.auth.getSession();
+      showScreen('adminApp');
+      document.getElementById('adminUserEmail').textContent = session?.user?.email || '';
+      loadAll();
+    });
+
     document.getElementById('logoutBtn').addEventListener('click', () => sb.auth.signOut());
+
+    document.getElementById('inviteAdminBtn').addEventListener('click', async () => {
+      const email = prompt('Email address to invite as an admin:');
+      if (!email) return;
+      const { data: { session } } = await sb.auth.getSession();
+      const res = await fetch('https://otmuflfpogtpkzqrclmm.supabase.co/functions/v1/admin-invite-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (res.ok) {
+        alert(`Invite sent to ${email.trim()}. They'll get an email with a link to set their password.`);
+      } else {
+        const body = await res.text();
+        let message = 'Something went wrong. Please try again.';
+        try { message = JSON.parse(body).error || message; } catch (_) {}
+        alert(message);
+      }
+    });
 
     // ── Tabs ──
     document.querySelectorAll('.admin-tab').forEach(btn => {
