@@ -129,8 +129,6 @@ Copy nav and footer from an existing page — don't rewrite them.
 - [ ] Owner (info@thelearninglofteg.com) to create a personal Google Workspace email for day-to-day use; keep info@ for site/client contact
 - [ ] Program page's Enrichment Studios cards still need real course descriptions from the owner for Word & World, Canvas & Curtain, and Lead & Launch (current bullet lists/tags are placeholders — Word & World's is newly drafted, Canvas & Curtain/Lead & Launch are left over from the old Art Fusion/Life Skills copy)
 - [ ] Remove the "Time" column from the Program page's daily schedule table, and remove the "Morning Move & Groove" and "Closing Circle" rows entirely
-- [ ] A leftover **production** Square payment link from testing (`https://square.link/u/b8y4XHnl`, ~$99) is still technically live — was emailed only to a fake `@example.com` test address so no real risk, but can be voided via the API if the owner wants it fully disabled.
-- [ ] `admin-portal-updates` branch has been merged to `main` and deployed live (2026-08-14) — the branch itself can be deleted once confirmed nothing else needs it
 
 ## Completed
 - [x] Enrollment form with dynamic per-child name & age inputs
