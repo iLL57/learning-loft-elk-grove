@@ -21,7 +21,7 @@
     <div class="admin-login__card">
       <img src="images/primary-logo-warm-web-transparent.png" alt="The Learning Loft" class="admin-login__logo">
       <h2>Admin Login</h2>
-      <p>Sign in to manage enrollments and families.</p>
+      <p>Sign in to manage enrollments and students.</p>
       <form id="loginForm">
         <div class="form-group">
           <label for="loginEmail">Email</label>
@@ -58,7 +58,7 @@
     <div class="admin-tabs">
       <div class="admin-tabs__inner">
         <button class="admin-tab active" data-tab="submissions">Submissions</button>
-        <button class="admin-tab" data-tab="families">Enrolled Families</button>
+        <button class="admin-tab" data-tab="students">Enrolled Students</button>
         <button class="admin-tab" data-tab="leads">Leads &amp; Outreach</button>
       </div>
     </div>
@@ -69,25 +69,41 @@
       <!-- ── Submissions Tab ── -->
       <div id="tab-submissions" class="admin-panel">
         <div class="admin-stats">
-          <div class="admin-stat-card">
+          <div class="admin-stat-card" data-filter="all">
             <span class="admin-stat-card__val" id="stat-total">—</span>
             <span class="admin-stat-card__label">Total</span>
           </div>
-          <div class="admin-stat-card">
+          <div class="admin-stat-card" data-filter="new">
             <span class="admin-stat-card__val" id="stat-new">—</span>
             <span class="admin-stat-card__label">New</span>
           </div>
-          <div class="admin-stat-card">
-            <span class="admin-stat-card__val" id="stat-contacted">—</span>
-            <span class="admin-stat-card__label">Contacted</span>
+          <div class="admin-stat-card" data-filter="package_sent">
+            <span class="admin-stat-card__val" id="stat-package_sent">—</span>
+            <span class="admin-stat-card__label">Package Sent</span>
           </div>
-          <div class="admin-stat-card">
-            <span class="admin-stat-card__val" id="stat-enrolled">—</span>
-            <span class="admin-stat-card__label">Enrolled</span>
+          <div class="admin-stat-card" data-filter="waitlisted">
+            <span class="admin-stat-card__val" id="stat-waitlisted">—</span>
+            <span class="admin-stat-card__label">Waitlisted</span>
+          </div>
+          <div class="admin-stat-card" data-filter="rejected">
+            <span class="admin-stat-card__val" id="stat-rejected">—</span>
+            <span class="admin-stat-card__label">Rejected</span>
           </div>
         </div>
         <div class="admin-card">
-          <div class="admin-card__head"><h3>All Submissions</h3></div>
+          <div class="admin-card__head">
+            <h3>All Submissions</h3>
+            <div style="display:flex; align-items:center; gap:.75rem;">
+              <select id="filterSubs" style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.5rem .75rem; font-size:.82rem; font-family:var(--font-body); color:var(--text);">
+                <option value="all">All Statuses</option>
+                <option value="new">New</option>
+                <option value="package_sent">Package Sent</option>
+                <option value="waitlisted">Waitlisted</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <button class="btn btn--outline" id="exportSubsBtn" style="padding:.5rem 1.1rem; font-size:.82rem;">Export CSV</button>
+            </div>
+          </div>
           <div class="admin-table-wrap">
             <table class="admin-table">
               <thead>
@@ -95,34 +111,56 @@
                   <th>Date</th>
                   <th>Parent</th>
                   <th>Email</th>
-                  <th>Child(ren)</th>
-                  <th>Age(s)</th>
+                  <th>Student(s)</th>
                   <th>Status</th>
                   <th>Details</th>
                 </tr>
               </thead>
               <tbody id="submissionsBody">
-                <tr><td colspan="7" class="admin-empty">Loading…</td></tr>
+                <tr><td colspan="6" class="admin-empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- ── Enrolled Families Tab ── -->
-      <div id="tab-families" class="admin-panel" style="display:none">
+      <!-- ── Enrolled Students Tab ── -->
+      <div id="tab-students" class="admin-panel" style="display:none">
         <div class="admin-panel-head">
-          <h3>Enrolled Families</h3>
-          <button class="btn btn--green" id="addFamilyBtn">+ Add Family</button>
+          <h3>Enrolled Students</h3>
+          <div style="display:flex; align-items:center; gap:.75rem;">
+            <select id="filterGrade" style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.5rem .75rem; font-size:.82rem; font-family:var(--font-body); color:var(--text);">
+              <option value="all">All Grades</option>
+              <option value="TK">TK</option>
+              <option value="K">K</option>
+              <option value="1">1st</option>
+              <option value="2">2nd</option>
+              <option value="3">3rd</option>
+              <option value="4">4th</option>
+              <option value="5">5th</option>
+              <option value="6">6th</option>
+            </select>
+            <select id="filterStudents" style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.5rem .75rem; font-size:.82rem; font-family:var(--font-body); color:var(--text);">
+              <option value="all">All Payment Statuses</option>
+              <option value="current">Current</option>
+              <option value="pending">Pending</option>
+              <option value="overdue">Overdue</option>
+            </select>
+            <button class="btn btn--green" id="addStudentBtn">+ Add Student</button>
+          </div>
         </div>
+        <div id="gradeCapacityPanel" style="display:flex; flex-wrap:wrap; gap:.6rem; margin-bottom:1.25rem;"></div>
         <div class="admin-card">
           <div class="admin-table-wrap">
             <table class="admin-table">
               <thead>
                 <tr>
-                  <th>Family</th>
+                  <th>Student</th>
+                  <th>Grade</th>
+                  <th>Parent/Guardian</th>
                   <th>Email</th>
-                  <th>Child(ren)</th>
+                  <th>Documents</th>
+                  <th>Initial Payment</th>
                   <th>Enrolled</th>
                   <th>Payment</th>
                   <th>Next Due</th>
@@ -130,8 +168,8 @@
                   <th>Edit</th>
                 </tr>
               </thead>
-              <tbody id="familiesBody">
-                <tr><td colspan="8" class="admin-empty">Loading…</td></tr>
+              <tbody id="studentsBody">
+                <tr><td colspan="11" class="admin-empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
@@ -142,7 +180,16 @@
       <div id="tab-leads" class="admin-panel" style="display:none">
         <div class="admin-panel-head">
           <h3>Leads &amp; Outreach Ideas</h3>
-          <button class="btn btn--green" id="addLeadBtn">+ Add Idea</button>
+          <div style="display:flex; align-items:center; gap:.75rem;">
+            <select id="filterLeads" style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.5rem .75rem; font-size:.82rem; font-family:var(--font-body); color:var(--text);">
+              <option value="all">All Statuses</option>
+              <option value="idea">Idea</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="paused">Paused</option>
+            </select>
+            <button class="btn btn--green" id="addLeadBtn">+ Add Idea</button>
+          </div>
         </div>
         <div id="leadsGrid" class="leads-grid">
           <p class="admin-empty">Loading…</p>
@@ -162,22 +209,40 @@
     </div>
   </div>
 
-  <!-- ── Family Modal ── -->
-  <div id="familyModal" class="admin-modal" style="display:none">
-    <div class="admin-modal__overlay" id="familyModalOverlay"></div>
+  <!-- ── Student Modal ── -->
+  <div id="studentModal" class="admin-modal" style="display:none">
+    <div class="admin-modal__overlay" id="studentModalOverlay"></div>
     <div class="admin-modal__box">
-      <button class="admin-modal__close" id="closeFamilyModal">&times;</button>
-      <h3 id="familyModalTitle">Add Enrolled Family</h3>
-      <form id="familyForm">
+      <button class="admin-modal__close" id="closeStudentModal">&times;</button>
+      <h3 id="studentModalTitle">Add Enrolled Student</h3>
+      <form id="studentForm">
         <div class="form-row">
           <div class="form-group">
-            <label>Parent First Name <span class="req">*</span></label>
-            <input type="text" name="parentFirst" required />
+            <label>Student Name <span class="req">*</span></label>
+            <input type="text" name="studentName" required />
           </div>
           <div class="form-group">
-            <label>Parent Last Name <span class="req">*</span></label>
-            <input type="text" name="parentLast" required />
+            <label>Grade Level <span class="req">*</span></label>
+            <select name="gradeLevel" required>
+              <option value="" disabled selected>Select one</option>
+              <option value="TK">TK</option>
+              <option value="K">K</option>
+              <option value="1">1st</option>
+              <option value="2">2nd</option>
+              <option value="3">3rd</option>
+              <option value="4">4th</option>
+              <option value="5">5th</option>
+              <option value="6">6th</option>
+            </select>
           </div>
+        </div>
+        <div class="form-group">
+          <label>Age</label>
+          <input type="text" name="studentAge" placeholder="e.g. 8" />
+        </div>
+        <div class="form-group">
+          <label>Parent / Guardian Name <span class="req">*</span></label>
+          <input type="text" name="parentName" required />
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -187,16 +252,6 @@
           <div class="form-group">
             <label>Phone</label>
             <input type="tel" name="phone" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Child Name(s) <span class="req">*</span></label>
-            <input type="text" name="childName" required />
-          </div>
-          <div class="form-group">
-            <label>Age(s) <span class="req">*</span></label>
-            <input type="text" name="childAge" required />
           </div>
         </div>
         <div class="form-row">
@@ -228,7 +283,7 @@
           <textarea name="notes" rows="3"></textarea>
         </div>
         <input type="hidden" name="editId" />
-        <button type="submit" class="form-submit">Save Family</button>
+        <button type="submit" class="form-submit">Save Student</button>
       </form>
     </div>
   </div>
@@ -340,8 +395,39 @@
     function badge(cls, label) {
       return `<span class="badge ${cls}">${label}</span>`;
     }
+    const GRADE_LABELS = { TK: 'TK', K: 'K', '1': '1st', '2': '2nd', '3': '3rd', '4': '4th', '5': '5th', '6': '6th' };
+    const GRADE_ORDER = ['TK', 'K', '1', '2', '3', '4', '5', '6'];
+    const GRADE_CAPACITY = 10;
+
+    function gradeCounts(students) {
+      const counts = {};
+      GRADE_ORDER.forEach(g => counts[g] = 0);
+      (students || []).forEach(s => { if (counts[s.grade_level] !== undefined) counts[s.grade_level]++; });
+      return counts;
+    }
+
+    function renderGradeCapacityPanel() {
+      const panel = document.getElementById('gradeCapacityPanel');
+      if (!panel) return;
+      const counts = gradeCounts(allStudents);
+      panel.innerHTML = GRADE_ORDER.map(g => {
+        const count = counts[g];
+        const full = count >= GRADE_CAPACITY;
+        return `
+          <div style="display:flex; align-items:center; gap:.4rem; padding:.5rem .85rem; border-radius:var(--r-sm); border:1px solid ${full ? 'var(--terracotta-dark)' : 'var(--border)'}; background:${full ? 'var(--terracotta-light)' : 'var(--white-warm)'};">
+            <strong style="font-size:.85rem; color:var(--text);">${GRADE_LABELS[g]}</strong>
+            <span style="font-size:.82rem; color:${full ? 'var(--terracotta-dark)' : 'var(--text-muted)'};">${count}/${GRADE_CAPACITY}${full ? ' FULL' : ''}</span>
+          </div>
+        `;
+      }).join('');
+    }
     function statusBadge(s) {
-      return { new: badge('badge--blue','New'), contacted: badge('badge--gold','Contacted'), enrolled: badge('badge--green','Enrolled'), declined: badge('badge--muted','Declined') }[s] || badge('badge--muted', s);
+      return {
+        new:           badge('badge--blue',  'New'),
+        package_sent:  badge('badge--gold',  'Package Sent'),
+        waitlisted:    badge('badge--muted', 'Waitlisted'),
+        rejected:      badge('badge--red',   'Rejected'),
+      }[s] || badge('badge--muted', s);
     }
     function payBadge(s) {
       return { current: badge('badge--green','Current'), pending: badge('badge--gold','Pending'), overdue: badge('badge--red','Overdue') }[s] || badge('badge--muted', s);
@@ -350,61 +436,183 @@
       return { idea: badge('badge--blue','Idea'), in_progress: badge('badge--gold','In Progress'), completed: badge('badge--green','Completed'), paused: badge('badge--muted','Paused') }[s] || badge('badge--muted', s);
     }
 
-    function loadAll() { loadSubmissions(); loadFamilies(); loadLeads(); }
+    function loadAll() { loadSubmissions(); loadStudents(); loadLeads(); }
 
     // ── Submissions ──
     let allSubs = [];
+    let studentsBySubmission = {};
+    let enrolledBySubmission = {};
     async function loadSubmissions() {
-      const { data } = await sb.from('enrollment_submissions').select('*').order('created_at', { ascending: false });
-      allSubs = data || [];
-      const body = document.getElementById('submissionsBody');
-      document.getElementById('stat-total').textContent     = allSubs.length;
-      document.getElementById('stat-new').textContent       = allSubs.filter(r => r.status === 'new').length;
-      document.getElementById('stat-contacted').textContent = allSubs.filter(r => r.status === 'contacted').length;
-      document.getElementById('stat-enrolled').textContent  = allSubs.filter(r => r.status === 'enrolled').length;
+      const [{ data: subs }, { data: students }, { data: enrolled }] = await Promise.all([
+        sb.from('enrollment_submissions').select('*').order('created_at', { ascending: false }),
+        sb.from('submission_students').select('*'),
+        sb.from('enrolled_students').select('*'),
+      ]);
+      allSubs = subs || [];
+      studentsBySubmission = {};
+      (students || []).forEach(s => {
+        (studentsBySubmission[s.submission_id] ||= []).push(s);
+      });
+      enrolledBySubmission = {};
+      (enrolled || []).forEach(s => {
+        if (!s.submission_id) return;
+        (enrolledBySubmission[s.submission_id] ||= []).push(s);
+      });
+      document.getElementById('stat-total').textContent          = allSubs.length;
+      document.getElementById('stat-new').textContent            = allSubs.filter(r => r.status === 'new').length;
+      document.getElementById('stat-package_sent').textContent   = allSubs.filter(r => r.status === 'package_sent').length;
+      document.getElementById('stat-waitlisted').textContent     = allSubs.filter(r => r.status === 'waitlisted').length;
+      document.getElementById('stat-rejected').textContent       = allSubs.filter(r => r.status === 'rejected').length;
+      renderSubmissions();
+    }
 
-      if (!allSubs.length) {
-        body.innerHTML = '<tr><td colspan="7" class="admin-empty">No submissions yet.</td></tr>';
+    function studentsFor(submissionId) {
+      return studentsBySubmission[submissionId] || [];
+    }
+
+    function studentsLabel(submissionId) {
+      const list = studentsFor(submissionId);
+      if (!list.length) return '—';
+      return list.map(s => `${s.student_name} (${GRADE_LABELS[s.grade_level] || s.grade_level})`).join(', ');
+    }
+
+    function progressLabel(submissionId) {
+      const list = enrolledBySubmission[submissionId] || [];
+      if (!list.length) return '';
+      const signed = list.filter(s => s.documents_signed).length;
+      const paid   = list.filter(s => s.initial_payment_received).length;
+      const allDone = signed === list.length && paid === list.length;
+      const color = allDone ? 'var(--green-dark)' : 'var(--text-muted)';
+      return `<div style="font-size:.78rem; color:${color}; margin-top:.25rem; white-space:nowrap;">${allDone ? '✓ ' : ''}${signed}/${list.length} signed · ${paid}/${list.length} paid</div>`;
+    }
+
+    function filteredSubs() {
+      const filter = document.getElementById('filterSubs').value;
+      const subs = filter === 'all' ? allSubs : allSubs.filter(r => r.status === filter);
+      // Waitlist is a queue: show oldest application first.
+      if (filter === 'waitlisted') return [...subs].reverse();
+      return subs;
+    }
+
+    function renderSubmissions() {
+      const body = document.getElementById('submissionsBody');
+      const subs = filteredSubs();
+
+      if (!subs.length) {
+        body.innerHTML = `<tr><td colspan="6" class="admin-empty">${allSubs.length ? 'No submissions match this filter.' : 'No submissions yet.'}</td></tr>`;
         return;
       }
-      body.innerHTML = allSubs.map(r => `
+      body.innerHTML = subs.map(r => `
         <tr>
           <td style="white-space:nowrap">${fmt(r.created_at)}</td>
           <td><strong>${r.parent_name}</strong></td>
           <td><a href="mailto:${r.email}">${r.email}</a></td>
-          <td>${r.child_name || '—'}</td>
-          <td>${r.child_age || '—'}</td>
-          <td>
-            <select class="status-select" data-id="${r.id}">
-              <option value="new"       ${r.status==='new'       ?'selected':''}>New</option>
-              <option value="contacted" ${r.status==='contacted' ?'selected':''}>Contacted</option>
-              <option value="enrolled"  ${r.status==='enrolled'  ?'selected':''}>Enrolled</option>
-              <option value="declined"  ${r.status==='declined'  ?'selected':''}>Declined</option>
-            </select>
-          </td>
+          <td>${studentsLabel(r.id)}</td>
+          <td>${statusBadge(r.status)}${r.status === 'package_sent' ? progressLabel(r.id) : ''}</td>
           <td><button class="admin-link view-sub" data-id="${r.id}">View</button></td>
         </tr>
       `).join('');
 
-      body.querySelectorAll('.status-select').forEach(sel => {
-        sel.addEventListener('change', async () => {
-          await sb.from('enrollment_submissions').update({ status: sel.value }).eq('id', sel.dataset.id);
-          loadSubmissions();
-        });
-      });
       body.querySelectorAll('.view-sub').forEach(btn => {
         btn.addEventListener('click', () => openSubModal(allSubs.find(s => s.id === btn.dataset.id)));
       });
     }
 
+    document.getElementById('filterSubs').addEventListener('change', renderSubmissions);
+
+    document.querySelectorAll('.admin-stat-card[data-filter]').forEach(card => {
+      card.addEventListener('click', () => {
+        document.getElementById('filterSubs').value = card.dataset.filter;
+        renderSubmissions();
+        document.getElementById('submissionsBody').closest('.admin-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    async function callAdminAction(submissionId, action, confirmedGrades) {
+      const { data: { session } } = await sb.auth.getSession();
+      const res = await fetch('https://otmuflfpogtpkzqrclmm.supabase.co/functions/v1/admin-submission-action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ submissionId, action, confirmedGrades }),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        console.error('admin-submission-action failed:', res.status, body);
+        let message = 'Request failed';
+        try { message = JSON.parse(body).error || message; } catch (_) {}
+        throw new Error(message);
+      }
+    }
+
+    function csvEscape(val) {
+      const s = (val === null || val === undefined) ? '' : String(val);
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+
+    function exportSubmissionsCSV() {
+      const columns = [
+        ['created_at',       'Date Submitted'],
+        ['parent_name',      'Parent'],
+        ['email',            'Email'],
+        ['phone',            'Phone'],
+        ['students_label',   'Student(s)'],
+        ['days_interest',    'Days Interested'],
+        ['day_preference',   'Day Preference'],
+        ['tuition_exchange', 'Tuition Exchange'],
+        ['charter_program',  'Charter / Independent Study'],
+        ['hear_about',       'Heard About Us'],
+        ['message',          'Message'],
+        ['status',           'Status'],
+      ];
+
+      const header = columns.map(([, label]) => csvEscape(label)).join(',');
+      const rows = filteredSubs().map(r => columns.map(([key]) => {
+        if (key === 'created_at') return csvEscape(fmt(r[key]));
+        if (key === 'students_label') return csvEscape(studentsLabel(r.id));
+        return csvEscape(r[key]);
+      }).join(','));
+
+      const csv = [header, ...rows].join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const today = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `learning-loft-submissions-${today}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('exportSubsBtn').addEventListener('click', exportSubmissionsCSV);
+
     function openSubModal(r) {
       document.getElementById('modalParentName').textContent = r.parent_name;
+      const students = studentsFor(r.id);
+      const enrolled = enrolledBySubmission[r.id] || [];
+      let studentsHtml;
+      if (enrolled.length) {
+        studentsHtml = `<ul style="margin:.3rem 0 0; padding-left:0; list-style:none; display:flex; flex-direction:column; gap:.4rem;">${enrolled.map(s => `
+          <li style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;">
+            <span>${s.student_name} — ${GRADE_LABELS[s.grade_level] || s.grade_level}</span>
+            ${s.documents_signed ? badge('badge--green', 'Signed') : badge('badge--muted', 'Awaiting Signature')}
+            ${s.initial_payment_received ? badge('badge--green', 'Paid') : badge('badge--muted', 'Awaiting Payment')}
+          </li>`).join('')}</ul>`;
+      } else if (students.length) {
+        studentsHtml = `<ul style="margin:.3rem 0 0; padding-left:1.1rem;">${students.map(s => `<li>${s.student_name} — ${GRADE_LABELS[s.grade_level] || s.grade_level}</li>`).join('')}</ul>`;
+      } else {
+        studentsHtml = '—';
+      }
+      const isDecided = r.status !== 'new';
       document.getElementById('modalBody').innerHTML = `
         <div class="admin-detail-grid">
           <div><strong>Email</strong><p><a href="mailto:${r.email}">${r.email}</a></p></div>
           <div><strong>Phone</strong><p>${r.phone || '—'}</p></div>
-          <div><strong>Child(ren)</strong><p>${r.child_name || '—'}</p></div>
-          <div><strong>Age(s)</strong><p>${r.child_age || '—'}</p></div>
+          <div style="grid-column:1/-1;"><strong>Student(s)</strong>${studentsHtml}</div>
           <div><strong>Days Interested</strong><p>${r.days_interest || '—'}</p></div>
           <div><strong>Day Preference</strong><p>${r.day_preference || '—'}</p></div>
           <div><strong>Tuition Exchange</strong><p>${r.tuition_exchange || '—'}</p></div>
@@ -414,80 +622,197 @@
         </div>
         ${r.message ? `<div style="margin-top:1rem;"><strong style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);">Message</strong><p style="margin-top:.3rem;font-size:.92rem;color:var(--text-body);">${r.message}</p></div>` : ''}
         <div style="margin-top:1.25rem;"><strong style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);">Status</strong><div style="margin-top:.4rem;">${statusBadge(r.status)}</div></div>
+        <div id="actionBar" style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border);">
+          <div id="actionButtons" style="display:flex; flex-wrap:wrap; gap:.6rem;">
+            <button class="btn btn--green" id="actionSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;" ${isDecided ? 'disabled' : ''}>Send Enrollment Package</button>
+            <button class="btn btn--outline" id="actionWaitlist" style="font-size:.85rem; padding:.6rem 1.2rem;" ${isDecided ? 'disabled' : ''}>Add to Waitlist</button>
+            <button class="btn btn--outline" id="actionReject" style="font-size:.85rem; padding:.6rem 1.2rem; color:var(--terracotta-dark); border-color:var(--terracotta-dark);" ${isDecided ? 'disabled' : ''}>Reject</button>
+          </div>
+        </div>
+        ${isDecided ? `<p style="font-size:.8rem; color:var(--text-muted); margin-top:.6rem; font-style:italic;">A decision has already been made on this application (${r.status.replace('_',' ')}).</p>` : ''}
       `;
       document.getElementById('submissionModal').style.display = 'flex';
+
+      if (!isDecided) {
+        const runAction = async (action, label) => {
+          if (!confirm(`${label} for ${r.parent_name}? This will email the applicant.`)) return;
+          const buttons = document.querySelectorAll('#actionSendPackage, #actionWaitlist, #actionReject');
+          buttons.forEach(b => b.disabled = true);
+          try {
+            await callAdminAction(r.id, action);
+            document.getElementById('submissionModal').style.display = 'none';
+            loadSubmissions();
+            loadStudents();
+          } catch (err) {
+            alert(err.message || 'Something went wrong. Please try again.');
+            buttons.forEach(b => b.disabled = false);
+          }
+        };
+
+        document.getElementById('actionSendPackage').addEventListener('click', async () => {
+          // Fetch fresh counts right before showing the dropdown so the
+          // capacity shown here can't be stale relative to other admin activity.
+          await loadStudents();
+          const counts = gradeCounts(allStudents);
+          const gradeOptionsFor = (currentGuess) => GRADE_ORDER.map(g => {
+            const full = counts[g] >= GRADE_CAPACITY;
+            return `<option value="${g}" ${currentGuess === g && !full ? 'selected' : ''} ${full ? 'disabled' : ''}>${GRADE_LABELS[g]} (${counts[g]}/${GRADE_CAPACITY}${full ? ' — FULL' : ''})</option>`;
+          }).join('');
+          document.getElementById('actionBar').innerHTML = `
+            <p style="font-size:.85rem; font-weight:700; color:var(--text); margin-bottom:.75rem;">Confirm each student's grade level before sending the package:</p>
+            <div style="display:flex; flex-direction:column; gap:.75rem; margin-bottom:1rem;">
+              ${students.map(s => {
+                const guessIsFull = s.grade_level && counts[s.grade_level] >= GRADE_CAPACITY;
+                return `
+                <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
+                  <div style="min-width:160px;">
+                    <strong>${s.student_name}</strong>
+                    ${s.notes ? `<div style="font-size:.78rem; color:var(--text-muted);">${s.notes}</div>` : ''}
+                  </div>
+                  <select class="confirm-grade" data-student-id="${s.id}" required style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.4rem .6rem; font-family:var(--font-body); font-size:.85rem;">
+                    <option value="" disabled ${(!s.grade_level || guessIsFull) ? 'selected' : ''}>Select grade</option>
+                    ${gradeOptionsFor(s.grade_level)}
+                  </select>
+                </div>
+              `;
+              }).join('')}
+            </div>
+            <p style="font-size:.78rem; color:var(--text-muted); margin-bottom:1rem;">Grades already at ${GRADE_CAPACITY} students are shown as FULL and can't be selected.</p>
+            <div style="display:flex; gap:.6rem;">
+              <button class="btn btn--green" id="confirmSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;">Confirm &amp; Send Package</button>
+              <button class="btn btn--outline" id="cancelSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;">Cancel</button>
+            </div>
+          `;
+          document.getElementById('cancelSendPackage').addEventListener('click', () => openSubModal(r));
+          document.getElementById('confirmSendPackage').addEventListener('click', async () => {
+            const selects = document.querySelectorAll('.confirm-grade');
+            const confirmedGrades = {};
+            let allSelected = true;
+            selects.forEach(sel => {
+              if (!sel.value) { allSelected = false; sel.style.borderColor = '#c0392b'; }
+              confirmedGrades[sel.dataset.studentId] = sel.value;
+            });
+            if (!allSelected) { alert('Please select a grade level for every student.'); return; }
+            if (!confirm(`Send enrollment package for ${r.parent_name}? This will email the applicant.`)) return;
+            document.getElementById('confirmSendPackage').disabled = true;
+            document.getElementById('cancelSendPackage').disabled = true;
+            try {
+              await callAdminAction(r.id, 'send_package', confirmedGrades);
+              document.getElementById('submissionModal').style.display = 'none';
+              loadSubmissions();
+              loadStudents();
+            } catch (err) {
+              alert(err.message || 'Something went wrong. Please try again.');
+              document.getElementById('confirmSendPackage').disabled = false;
+              document.getElementById('cancelSendPackage').disabled = false;
+            }
+          });
+        });
+
+        document.getElementById('actionWaitlist').addEventListener('click', () => runAction('waitlist', 'Add to waitlist'));
+        document.getElementById('actionReject').addEventListener('click',  () => runAction('reject',   'Reject this application'));
+      }
     }
 
     document.getElementById('closeSubModal').addEventListener('click', () => document.getElementById('submissionModal').style.display = 'none');
     document.getElementById('subModalOverlay').addEventListener('click', () => document.getElementById('submissionModal').style.display = 'none');
 
-    // ── Enrolled Families ──
-    let allFamilies = [];
-    async function loadFamilies() {
-      const { data } = await sb.from('enrolled_families').select('*').order('created_at', { ascending: false });
-      allFamilies = data || [];
-      const body = document.getElementById('familiesBody');
-      if (!allFamilies.length) {
-        body.innerHTML = '<tr><td colspan="8" class="admin-empty">No enrolled families yet.</td></tr>';
+    // ── Enrolled Students ──
+    let allStudents = [];
+    async function loadStudents() {
+      const { data } = await sb.from('enrolled_students').select('*').order('created_at', { ascending: false });
+      allStudents = data || [];
+      renderStudents();
+      renderGradeCapacityPanel();
+    }
+
+    function filteredStudents() {
+      const gradeFilter   = document.getElementById('filterGrade').value;
+      const paymentFilter = document.getElementById('filterStudents').value;
+      return allStudents.filter(r =>
+        (gradeFilter   === 'all' || r.grade_level    === gradeFilter) &&
+        (paymentFilter === 'all' || r.payment_status === paymentFilter)
+      );
+    }
+
+    function renderStudents() {
+      const body = document.getElementById('studentsBody');
+      const students = filteredStudents();
+      if (!students.length) {
+        body.innerHTML = `<tr><td colspan="11" class="admin-empty">${allStudents.length ? 'No students match this filter.' : 'No enrolled students yet.'}</td></tr>`;
         return;
       }
-      body.innerHTML = allFamilies.map(r => `
+      body.innerHTML = students.map(r => `
         <tr>
-          <td><strong>${r.parent_first} ${r.parent_last}</strong></td>
+          <td><strong>${r.student_name}</strong></td>
+          <td>${GRADE_LABELS[r.grade_level] || r.grade_level}</td>
+          <td>${r.parent_name}</td>
           <td><a href="mailto:${r.email}">${r.email}</a></td>
-          <td>${r.child_name || '—'}</td>
+          <td><button class="toggle-flag" data-id="${r.id}" data-field="documents_signed" data-value="${r.documents_signed}">${r.documents_signed ? badge('badge--green', 'Signed') : badge('badge--muted', 'Awaiting')}</button></td>
+          <td><button class="toggle-flag" data-id="${r.id}" data-field="initial_payment_received" data-value="${r.initial_payment_received}">${r.initial_payment_received ? badge('badge--green', 'Paid') : badge('badge--muted', 'Awaiting')}</button></td>
           <td style="white-space:nowrap">${fmt(r.enrollment_date)}</td>
           <td>${payBadge(r.payment_status)}</td>
           <td style="white-space:nowrap">${fmt(r.next_payment_due)}</td>
           <td class="notes-cell">${r.notes || '—'}</td>
-          <td><button class="admin-link edit-family" data-id="${r.id}">Edit</button></td>
+          <td><button class="admin-link edit-student" data-id="${r.id}">Edit</button></td>
         </tr>
       `).join('');
-      body.querySelectorAll('.edit-family').forEach(btn => {
-        btn.addEventListener('click', () => openFamilyModal(allFamilies.find(f => f.id === btn.dataset.id)));
+      body.querySelectorAll('.edit-student').forEach(btn => {
+        btn.addEventListener('click', () => openStudentModal(allStudents.find(s => s.id === btn.dataset.id)));
+      });
+      body.querySelectorAll('.toggle-flag').forEach(btn => {
+        btn.style.cssText = 'background:none; border:none; padding:0; cursor:pointer;';
+        btn.title = 'Click to toggle';
+        btn.addEventListener('click', async () => {
+          const newValue = btn.dataset.value !== 'true';
+          await sb.from('enrolled_students').update({ [btn.dataset.field]: newValue }).eq('id', btn.dataset.id);
+          loadStudents();
+        });
       });
     }
 
-    document.getElementById('addFamilyBtn').addEventListener('click', () => openFamilyModal(null));
+    document.getElementById('addStudentBtn').addEventListener('click', () => openStudentModal(null));
+    document.getElementById('filterGrade').addEventListener('change', renderStudents);
+    document.getElementById('filterStudents').addEventListener('change', renderStudents);
 
-    function openFamilyModal(fam) {
-      const form = document.getElementById('familyForm');
-      document.getElementById('familyModalTitle').textContent = fam ? 'Edit Family' : 'Add Enrolled Family';
+    function openStudentModal(student) {
+      const form = document.getElementById('studentForm');
+      document.getElementById('studentModalTitle').textContent = student ? 'Edit Student' : 'Add Enrolled Student';
       form.reset();
-      if (fam) {
-        form.parentFirst.value    = fam.parent_first || '';
-        form.parentLast.value     = fam.parent_last  || '';
-        form.email.value          = fam.email        || '';
-        form.phone.value          = fam.phone        || '';
-        form.childName.value      = fam.child_name   || '';
-        form.childAge.value       = fam.child_age    || '';
-        form.enrollmentDate.value = fam.enrollment_date   || '';
-        form.nextPaymentDue.value = fam.next_payment_due  || '';
-        form.paymentStatus.value  = fam.payment_status    || 'current';
-        form.monthlyRate.value    = fam.monthly_rate      || '';
-        form.notes.value          = fam.notes             || '';
-        form.editId.value         = fam.id;
+      if (student) {
+        form.studentName.value    = student.student_name || '';
+        form.gradeLevel.value     = student.grade_level   || '';
+        form.studentAge.value     = student.student_age   || '';
+        form.parentName.value     = student.parent_name  || '';
+        form.email.value          = student.email        || '';
+        form.phone.value          = student.phone        || '';
+        form.enrollmentDate.value = student.enrollment_date   || '';
+        form.nextPaymentDue.value = student.next_payment_due  || '';
+        form.paymentStatus.value  = student.payment_status    || 'current';
+        form.monthlyRate.value    = student.monthly_rate      || '';
+        form.notes.value          = student.notes             || '';
+        form.editId.value         = student.id;
       } else {
         form.editId.value = '';
       }
-      document.getElementById('familyModal').style.display = 'flex';
+      document.getElementById('studentModal').style.display = 'flex';
     }
 
-    document.getElementById('closeFamilyModal').addEventListener('click',  () => document.getElementById('familyModal').style.display = 'none');
-    document.getElementById('familyModalOverlay').addEventListener('click', () => document.getElementById('familyModal').style.display = 'none');
+    document.getElementById('closeStudentModal').addEventListener('click',  () => document.getElementById('studentModal').style.display = 'none');
+    document.getElementById('studentModalOverlay').addEventListener('click', () => document.getElementById('studentModal').style.display = 'none');
 
-    document.getElementById('familyForm').addEventListener('submit', async (e) => {
+    document.getElementById('studentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const f = e.target;
       const btn = f.querySelector('button[type="submit"]');
       btn.textContent = 'Saving…'; btn.disabled = true;
       const payload = {
-        parent_first:    f.parentFirst.value.trim(),
-        parent_last:     f.parentLast.value.trim(),
+        student_name:    f.studentName.value.trim(),
+        grade_level:     f.gradeLevel.value,
+        student_age:     f.studentAge.value.trim(),
+        parent_name:     f.parentName.value.trim(),
         email:           f.email.value.trim(),
         phone:           f.phone.value.trim()         || null,
-        child_name:      f.childName.value.trim(),
-        child_age:       f.childAge.value.trim(),
         enrollment_date: f.enrollmentDate.value       || null,
         next_payment_due:f.nextPaymentDue.value       || null,
         payment_status:  f.paymentStatus.value,
@@ -495,11 +820,11 @@
         notes:           f.notes.value.trim()         || null,
       };
       const id = f.editId.value;
-      if (id) { await sb.from('enrolled_families').update(payload).eq('id', id); }
-      else     { await sb.from('enrolled_families').insert(payload); }
-      document.getElementById('familyModal').style.display = 'none';
-      btn.textContent = 'Save Family'; btn.disabled = false;
-      loadFamilies();
+      if (id) { await sb.from('enrolled_students').update(payload).eq('id', id); }
+      else     { await sb.from('enrolled_students').insert(payload); }
+      document.getElementById('studentModal').style.display = 'none';
+      btn.textContent = 'Save Student'; btn.disabled = false;
+      loadStudents();
     });
 
     // ── Leads ──
@@ -507,12 +832,22 @@
     async function loadLeads() {
       const { data } = await sb.from('leads').select('*').order('created_at', { ascending: false });
       allLeads = data || [];
+      renderLeads();
+    }
+
+    function filteredLeads() {
+      const filter = document.getElementById('filterLeads').value;
+      return filter === 'all' ? allLeads : allLeads.filter(r => r.status === filter);
+    }
+
+    function renderLeads() {
       const grid = document.getElementById('leadsGrid');
-      if (!allLeads.length) {
-        grid.innerHTML = '<p class="admin-empty" style="grid-column:1/-1">No leads yet — add your first outreach idea!</p>';
+      const leads = filteredLeads();
+      if (!leads.length) {
+        grid.innerHTML = `<p class="admin-empty" style="grid-column:1/-1">${allLeads.length ? 'No leads match this filter.' : 'No leads yet — add your first outreach idea!'}</p>`;
         return;
       }
-      grid.innerHTML = allLeads.map(r => `
+      grid.innerHTML = leads.map(r => `
         <div class="lead-card">
           <div class="lead-card__head">
             <div>
@@ -532,6 +867,7 @@
     }
 
     document.getElementById('addLeadBtn').addEventListener('click', () => openLeadModal(null));
+    document.getElementById('filterLeads').addEventListener('change', renderLeads);
 
     function openLeadModal(lead) {
       const form = document.getElementById('leadForm');

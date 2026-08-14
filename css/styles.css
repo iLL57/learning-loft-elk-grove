@@ -1301,7 +1301,7 @@ em { font-style: italic; }
 /* Stats row */
 .admin-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -1314,7 +1314,10 @@ em { font-style: italic; }
   flex-direction: column;
   gap: .3rem;
   box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: box-shadow .18s, border-color .18s;
 }
+.admin-stat-card:hover { box-shadow: var(--shadow-md); border-color: var(--green); }
 .admin-stat-card__val {
   font-family: var(--font-head);
   font-size: 2.2rem;
@@ -1340,6 +1343,10 @@ em { font-style: italic; }
 .admin-card__head {
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 .admin-card__head h3 { font-size: 1rem; font-family: var(--font-body); font-weight: 700; }
 
