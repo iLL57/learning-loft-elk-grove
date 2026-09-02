@@ -1064,8 +1064,11 @@
     document.getElementById('closeStudentModal').addEventListener('click',  () => document.getElementById('studentModal').style.display = 'none');
     document.getElementById('studentModalOverlay').addEventListener('click', () => document.getElementById('studentModal').style.display = 'none');
 
+    let studentSaving = false;
     document.getElementById('studentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (studentSaving) return;
+      studentSaving = true;
       const f = e.target;
       const btn = f.querySelector('button[type="submit"]');
       btn.textContent = 'Saving…'; btn.disabled = true;
@@ -1088,6 +1091,7 @@
       else     { await sb.from('enrolled_students').insert(payload); }
       document.getElementById('studentModal').style.display = 'none';
       btn.textContent = 'Save Student'; btn.disabled = false;
+      studentSaving = false;
       loadStudents();
       loadFamilies();
     });
@@ -1170,8 +1174,9 @@
                 <strong style="font-size:1.05rem;">${f.family_name} Family</strong>
                 <span style="color:var(--text-muted); font-size:.85rem;"> · ${kids.length} student${kids.length === 1 ? '' : 's'}</span>
               </div>
-              <div style="display:flex; gap:.5rem; flex-shrink:0;">
+              <div style="display:flex; gap:.5rem; flex-shrink:0; align-items:center;">
                 <button class="admin-link edit-family" data-id="${f.id}">Edit</button>
+                <button class="admin-link delete-family" data-id="${f.id}" style="color:#c0392b;">Delete</button>
                 <button class="btn btn--green invite-guardian" data-id="${f.id}" style="padding:.35rem .8rem; font-size:.8rem;">+ Invite to Portal</button>
               </div>
             </div>
@@ -1204,6 +1209,22 @@
       list.querySelectorAll('.invite-guardian').forEach(btn => {
         btn.addEventListener('click', () => inviteGuardian(allFamilies.find(f => f.id === btn.dataset.id)));
       });
+      list.querySelectorAll('.delete-family').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const fam = allFamilies.find(f => f.id === btn.dataset.id);
+          const kids = (byFamily[fam.id] || []).length;
+          const guards = (guardiansByFamily[fam.id] || []).length;
+          let warn = `Delete the ${fam.family_name} family?`;
+          if (kids)   warn += `\n\n${kids} student${kids === 1 ? '' : 's'} will become unassigned (not deleted — you can reassign them).`;
+          if (guards) warn += `\n\n${guards} portal guardian${guards === 1 ? '' : 's'} will lose access to the portal.`;
+          if (!confirm(warn)) return;
+          btn.disabled = true;
+          const { error } = await sb.from('families').delete().eq('id', fam.id);
+          if (error) { alert('Could not delete: ' + error.message); btn.disabled = false; return; }
+          loadStudents();
+          loadFamilies();
+        });
+      });
     }
 
     function openFamilyModal(family) {
@@ -1229,8 +1250,11 @@
     document.getElementById('closeFamilyModal').addEventListener('click', () => document.getElementById('familyModal').style.display = 'none');
     document.getElementById('familyModalOverlay').addEventListener('click', () => document.getElementById('familyModal').style.display = 'none');
 
+    let familySaving = false;
     document.getElementById('familyForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (familySaving) return;
+      familySaving = true;
       const f = e.target;
       const btn = f.querySelector('button[type="submit"]');
       btn.textContent = 'Saving…'; btn.disabled = true;
@@ -1248,6 +1272,7 @@
       else     { await sb.from('families').insert(payload); }
       document.getElementById('familyModal').style.display = 'none';
       btn.textContent = 'Save Family'; btn.disabled = false;
+      familySaving = false;
       loadFamilies();
     });
 
