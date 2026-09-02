@@ -17,10 +17,10 @@ function json(body: unknown, status = 200) {
   });
 }
 
-// inviteUserByEmail sends its own branded-by-Supabase email, but only for a
-// brand-new user. When the email already has an account (e.g. a staff admin
-// enrolling their own kids), we generate a recovery link and send it
-// ourselves via Resend so they still get a "set your password" message.
+// We generate the sign-in link ourselves (generateLink never sends email)
+// and deliver exactly one branded message via Resend — for both brand-new
+// accounts and ones that already exist (e.g. a staff admin enrolling their
+// own kids). Avoids Supabase's generic "Accept Invitation" email entirely.
 async function sendPortalLinkEmail(to: string, name: string | null, actionLink: string) {
   const resendKey = Deno.env.get("RESEND_API_KEY");
   if (!resendKey) {
@@ -112,35 +112,39 @@ Deno.serve(async (req) => {
       .single();
     if (famError || !family) return json({ error: "Family not found" }, 404);
 
-    // ── Resolve (or create) the auth user ──
+    // ── Resolve (or create) the auth user, get a sign-in link ──
     let userId: string;
+    let actionLink: string | undefined;
     let emailNote = "";
-    const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-      redirectTo: PORTAL_URL,
+
+    // type "invite" creates the user if new; fails if the email already exists.
+    const { data: inviteLink, error: inviteErr } = await admin.auth.admin.generateLink({
+      type: "invite",
+      email,
+      options: { redirectTo: PORTAL_URL },
     });
 
-    if (invited?.user) {
-      // Brand-new user — inviteUserByEmail already sent them the email.
-      userId = invited.user.id;
+    if (inviteLink?.user) {
+      userId = inviteLink.user.id;
+      actionLink = inviteLink.properties?.action_link;
     } else {
-      // Email already registered (e.g. a staff admin enrolling their own
-      // kids). generateLink builds a recovery link but does NOT send it, so
-      // we email it ourselves via Resend.
+      // Already registered — issue a recovery link instead.
       const existing = await findUserByEmail(admin, email);
-      if (!existing) return json({ error: inviteError?.message || "Could not invite that email" }, 400);
+      if (!existing) return json({ error: inviteErr?.message || "Could not invite that email" }, 400);
       userId = existing.id;
-      const { data: linkData, error: linkGenError } = await admin.auth.admin.generateLink({
+      const { data: recoveryLink } = await admin.auth.admin.generateLink({
         type: "recovery",
         email,
         options: { redirectTo: PORTAL_URL },
       });
-      const actionLink = linkData?.properties?.action_link;
-      if (linkGenError || !actionLink) {
-        emailNote = " (could not generate their sign-in link — ask them to use \"Forgot password\" on the portal)";
-      } else {
-        const sent = await sendPortalLinkEmail(email, name, actionLink);
-        if (!sent) emailNote = " (linked, but the email failed to send — ask them to use \"Forgot password\" on the portal)";
-      }
+      actionLink = recoveryLink?.properties?.action_link;
+    }
+
+    if (actionLink) {
+      const sent = await sendPortalLinkEmail(email, name, actionLink);
+      if (!sent) emailNote = " (linked, but the email failed to send — ask them to use \"Forgot password\" on the portal)";
+    } else {
+      emailNote = " (could not generate their sign-in link — ask them to use \"Forgot password\" on the portal)";
     }
 
     // ── Link them to the family ──
