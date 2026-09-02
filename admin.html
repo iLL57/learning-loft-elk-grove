@@ -398,6 +398,35 @@
     </div>
   </div>
 
+  <!-- ── Invite to Portal Modal ── -->
+  <div id="inviteModal" class="admin-modal" style="display:none">
+    <div class="admin-modal__overlay" id="inviteModalOverlay"></div>
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="closeInviteModal">&times;</button>
+      <h3>Invite to Parent Portal</h3>
+      <p id="inviteFamilyLabel" style="color:var(--text-body); font-size:.9rem; margin-bottom:1rem;"></p>
+      <form id="inviteForm">
+        <div class="form-group">
+          <label>Email <span class="req">*</span></label>
+          <input type="email" name="email" required autocomplete="off" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Guardian Name</label>
+            <input type="text" name="name" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label>Relationship</label>
+            <input type="text" name="relationship" placeholder="e.g. Mother" autocomplete="off" />
+          </div>
+        </div>
+        <p id="inviteMessage" class="admin-error" style="display:none"></p>
+        <input type="hidden" name="familyId" />
+        <button type="submit" class="form-submit">Send Invite</button>
+      </form>
+    </div>
+  </div>
+
   <!-- ── Lead Modal ── -->
   <div id="leadModal" class="admin-modal" style="display:none">
     <div class="admin-modal__overlay" id="leadModalOverlay"></div>
@@ -1098,13 +1127,33 @@
       });
 
       const unBox = document.getElementById('unassignedStudents');
+      const famOpts = allFamilies.map(f => `<option value="${f.id}">${f.family_name}</option>`).join('');
       unBox.innerHTML = unassigned.length ? `
         <div class="admin-card" style="padding:1.25rem 1.5rem; margin-bottom:1.25rem; border:1px solid var(--terracotta); background:var(--terracotta-light);">
           <strong style="color:var(--terracotta-dark);">${unassigned.length} enrolled student${unassigned.length > 1 ? 's' : ''} not linked to a family</strong>
-          <p style="font-size:.88rem; color:var(--text-body); margin-top:.35rem;">
-            ${unassigned.map(s => s.student_name).join(', ')} — open each on the Enrolled Students tab and pick a Family (create one below first if needed).
+          <p style="font-size:.85rem; color:var(--text-body); margin:.35rem 0 .85rem;">
+            Pick a family for each. Create one with <strong>+ Add Family</strong> first if it doesn't exist yet.
           </p>
+          ${unassigned.map(s => `
+            <div style="display:flex; align-items:center; gap:.75rem; padding:.4rem 0;">
+              <span style="min-width:9rem; font-size:.9rem;"><strong>${s.student_name}</strong> <span style="color:var(--text-muted);">(${GRADE_LABELS[s.grade_level] || s.grade_level})</span></span>
+              <select class="assign-family" data-id="${s.id}" style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.4rem .6rem; font-family:var(--font-body); font-size:.85rem;">
+                <option value="">— Choose family —</option>
+                ${famOpts}
+              </select>
+            </div>
+          `).join('')}
         </div>` : '';
+      unBox.querySelectorAll('.assign-family').forEach(sel => {
+        sel.addEventListener('change', async () => {
+          if (!sel.value) return;
+          sel.disabled = true;
+          const { error } = await sb.from('enrolled_students').update({ family_id: sel.value }).eq('id', sel.dataset.id);
+          if (error) { alert('Could not assign: ' + error.message); sel.disabled = false; return; }
+          loadStudents();
+          loadFamilies();
+        });
+      });
 
       const list = document.getElementById('familiesList');
       if (!allFamilies.length) {
@@ -1202,26 +1251,61 @@
       loadFamilies();
     });
 
-    async function inviteGuardian(family) {
-      const email = prompt(`Email to invite for portal access to the ${family.family_name} family:`, family.primary_email || '');
-      if (!email) return;
-      const name = prompt('Guardian name:', family.primary_guardian_name || '') || '';
-      const relationship = prompt('Relationship (e.g. Mother, Father, Guardian):', '') || '';
-      const { data: { session } } = await sb.auth.getSession();
-      const res = await fetch('https://otmuflfpogtpkzqrclmm.supabase.co/functions/v1/parent-invite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-        body: JSON.stringify({ familyId: family.id, email: email.trim(), name: name.trim(), relationship: relationship.trim() }),
-      });
-      if (res.ok) {
-        alert(`Invite sent to ${email.trim()}. They'll get an email with a link to set a password and reach the portal.`);
-        loadFamilies();
-      } else {
-        let message = 'Something went wrong. Please try again.';
-        try { message = JSON.parse(await res.text()).error || message; } catch (_) {}
-        alert(message);
-      }
+    function inviteGuardian(family) {
+      const form = document.getElementById('inviteForm');
+      form.reset();
+      document.getElementById('inviteMessage').style.display = 'none';
+      document.getElementById('inviteFamilyLabel').textContent = `Give a guardian of the ${family.family_name} family access to the portal. They'll get an email with a link to set a password.`;
+      form.familyId.value     = family.id;
+      form.email.value        = family.primary_email || '';
+      form.name.value         = family.primary_guardian_name || '';
+      form.querySelector('button[type="submit"]').textContent = 'Send Invite';
+      form.querySelector('button[type="submit"]').disabled = false;
+      document.getElementById('inviteModal').style.display = 'flex';
     }
+
+    document.getElementById('closeInviteModal').addEventListener('click', () => document.getElementById('inviteModal').style.display = 'none');
+    document.getElementById('inviteModalOverlay').addEventListener('click', () => document.getElementById('inviteModal').style.display = 'none');
+
+    document.getElementById('inviteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      const btn = f.querySelector('button[type="submit"]');
+      const msg = document.getElementById('inviteMessage');
+      btn.textContent = 'Sending…'; btn.disabled = true;
+      msg.style.display = 'none';
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) throw new Error('Your session expired. Sign in again.');
+        const res = await fetch('https://otmuflfpogtpkzqrclmm.supabase.co/functions/v1/parent-invite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+          body: JSON.stringify({
+            familyId: f.familyId.value,
+            email: f.email.value.trim(),
+            name: f.name.value.trim(),
+            relationship: f.relationship.value.trim(),
+          }),
+        });
+        const body = await res.text();
+        if (!res.ok) {
+          let message = 'Something went wrong. Please try again.';
+          try { message = JSON.parse(body).error || message; } catch (_) {}
+          throw new Error(message);
+        }
+        msg.style.color = 'var(--green-dark)';
+        msg.textContent = `Invite sent to ${f.email.value.trim()}.`;
+        msg.style.display = 'block';
+        btn.textContent = 'Sent ✓';
+        loadFamilies();
+        setTimeout(() => { document.getElementById('inviteModal').style.display = 'none'; }, 1500);
+      } catch (err) {
+        msg.style.color = '#c0392b';
+        msg.textContent = err.message || 'Something went wrong. Please try again.';
+        msg.style.display = 'block';
+        btn.textContent = 'Send Invite'; btn.disabled = false;
+      }
+    });
 
     // ── Leads ──
     let allLeads = [];
