@@ -234,8 +234,39 @@ Deno.serve(async (req) => {
           });
         }
 
+        // Find or create the family this application enrolls. Identity is
+        // the family record; the portal links guardians to it. Re-running
+        // Send Package for the same submission reuses the same family.
+        let familyId: string | null = null;
+        const { data: existingFam } = await supabase
+          .from("families")
+          .select("id")
+          .or(`source_submission_id.eq.${submission.id},primary_email.eq.${submission.email}`)
+          .limit(1)
+          .maybeSingle();
+        if (existingFam) {
+          familyId = existingFam.id;
+        } else {
+          const nameParts = (submission.parent_name || "").trim().split(/\s+/);
+          const familyName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : (submission.parent_name || "Family");
+          const { data: newFam, error: famError } = await supabase
+            .from("families")
+            .insert({
+              family_name: familyName,
+              primary_guardian_name: submission.parent_name,
+              primary_email: submission.email,
+              primary_phone: submission.phone,
+              source_submission_id: submission.id,
+            })
+            .select("id")
+            .single();
+          if (famError) throw new Error(JSON.stringify(famError));
+          familyId = newFam.id;
+        }
+
         const { data: inserted, error: insertError } = await supabase.from("enrolled_students").insert(
           studentList.map(s => ({
+            family_id: familyId,
             parent_name: submission.parent_name,
             email: submission.email,
             phone: submission.phone,

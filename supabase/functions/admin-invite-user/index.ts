@@ -57,6 +57,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Grant the admin role. Since the role gate went in, a new auth user is
+    // NOT an admin by default — without this row they'd land on admin.html
+    // and be bounced straight to the parent portal.
+    if (data.user?.id) {
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .upsert({ user_id: data.user.id, role: "admin" }, { onConflict: "user_id" });
+      if (roleError) {
+        console.error("Failed to grant admin role:", roleError);
+        return new Response(
+          JSON.stringify({ error: "Invite sent but role assignment failed. Contact support." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
     return new Response(JSON.stringify({ success: true, userId: data.user?.id }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
