@@ -17,6 +17,43 @@ function json(body: unknown, status = 200) {
   });
 }
 
+// inviteUserByEmail sends its own branded-by-Supabase email, but only for a
+// brand-new user. When the email already has an account (e.g. a staff admin
+// enrolling their own kids), we generate a recovery link and send it
+// ourselves via Resend so they still get a "set your password" message.
+async function sendPortalLinkEmail(to: string, name: string | null, actionLink: string) {
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey) {
+    console.error("RESEND_API_KEY not set — cannot email existing user their portal link");
+    return false;
+  }
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "The Learning Loft <enrollments@thelearninglofteg.com>",
+        to,
+        subject: "Your Parent Portal Access — The Learning Loft of Elk Grove",
+        html: `
+          <h2>Welcome to the Parent Portal${name ? ", " + name : ""}!</h2>
+          <p>You now have access to The Learning Loft parent portal, where you can view your
+          family's documents, calendar, field-trip forms, and staff info.</p>
+          <p><a href="${actionLink}">Set your password and sign in</a></p>
+          <p>If you already have a password for this email, you can also just sign in directly at
+          <a href="${PORTAL_URL}">${PORTAL_URL}</a>.</p>
+          <p style="margin-top:1.5rem;">Warmly,<br>The Learning Loft of Elk Grove</p>
+        `,
+      }),
+    });
+    if (!res.ok) { console.error("Resend send failed:", await res.text()); return false; }
+    return true;
+  } catch (err) {
+    console.error("Resend request failed:", err);
+    return false;
+  }
+}
+
 // Find an existing auth user by email (inviteUserByEmail fails if the email
 // is already registered — e.g. a second guardian who is already a guardian
 // of another family, or an email reused from an application test).
@@ -77,19 +114,33 @@ Deno.serve(async (req) => {
 
     // ── Resolve (or create) the auth user ──
     let userId: string;
+    let emailNote = "";
     const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
       redirectTo: PORTAL_URL,
     });
 
     if (invited?.user) {
+      // Brand-new user — inviteUserByEmail already sent them the email.
       userId = invited.user.id;
     } else {
-      // Most likely: email already registered. Find them and send a
-      // password-recovery link instead so they can still set a password.
+      // Email already registered (e.g. a staff admin enrolling their own
+      // kids). generateLink builds a recovery link but does NOT send it, so
+      // we email it ourselves via Resend.
       const existing = await findUserByEmail(admin, email);
       if (!existing) return json({ error: inviteError?.message || "Could not invite that email" }, 400);
       userId = existing.id;
-      await admin.auth.admin.generateLink({ type: "recovery", email, options: { redirectTo: PORTAL_URL } });
+      const { data: linkData, error: linkGenError } = await admin.auth.admin.generateLink({
+        type: "recovery",
+        email,
+        options: { redirectTo: PORTAL_URL },
+      });
+      const actionLink = linkData?.properties?.action_link;
+      if (linkGenError || !actionLink) {
+        emailNote = " (could not generate their sign-in link — ask them to use \"Forgot password\" on the portal)";
+      } else {
+        const sent = await sendPortalLinkEmail(email, name, actionLink);
+        if (!sent) emailNote = " (linked, but the email failed to send — ask them to use \"Forgot password\" on the portal)";
+      }
     }
 
     // ── Link them to the family ──
@@ -108,7 +159,7 @@ Deno.serve(async (req) => {
       );
     if (linkError) return json({ error: "Invite sent but linking to the family failed. Try again." }, 500);
 
-    return json({ success: true, userId });
+    return json({ success: true, userId, note: emailNote || undefined });
   } catch (err) {
     console.error(err);
     return json({ error: "Server error" }, 500);

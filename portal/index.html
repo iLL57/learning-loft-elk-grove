@@ -285,9 +285,29 @@
       const content = document.getElementById('portalContent');
       const notice = document.getElementById('noFamilyNotice');
 
+      // Scope to the families this user is a guardian of. Needed because an
+      // account can also be an admin (staff enrolling their own kids), and
+      // an admin's RLS view of `families` is every family — my_family_ids()
+      // is the guardian link specifically.
+      const { data: famIds, error: idErr } = await sb.rpc('my_family_ids');
+      if (idErr) {
+        notice.style.display = 'block';
+        notice.querySelector('h3').textContent = 'Something went wrong loading your family';
+        notice.querySelector('p').textContent = 'Please refresh, or email info@thelearninglofteg.com if it keeps happening.';
+        content.style.display = 'none';
+        return;
+      }
+      const ids = (famIds || []).map(r => (typeof r === 'string' ? r : r.my_family_ids));
+      if (!ids.length) {
+        notice.style.display = 'block';
+        content.style.display = 'none';
+        return;
+      }
+
       const { data: families, error } = await sb
         .from('families')
-        .select('*, enrolled_students(*), family_guardians(*)');
+        .select('*, enrolled_students(*), family_guardians(*)')
+        .in('id', ids);
 
       if (error) {
         notice.style.display = 'block';

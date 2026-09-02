@@ -1313,17 +1313,17 @@
           }),
         });
         const body = await res.text();
+        let parsed = {};
+        try { parsed = JSON.parse(body); } catch (_) {}
         if (!res.ok) {
-          let message = 'Something went wrong. Please try again.';
-          try { message = JSON.parse(body).error || message; } catch (_) {}
-          throw new Error(message);
+          throw new Error(parsed.error || 'Something went wrong. Please try again.');
         }
         msg.style.color = 'var(--green-dark)';
-        msg.textContent = `Invite sent to ${f.email.value.trim()}.`;
+        msg.textContent = `Invite sent to ${f.email.value.trim()}.${parsed.note || ''}`;
         msg.style.display = 'block';
         btn.textContent = 'Sent ✓';
         loadFamilies();
-        setTimeout(() => { document.getElementById('inviteModal').style.display = 'none'; }, 1500);
+        setTimeout(() => { document.getElementById('inviteModal').style.display = 'none'; }, parsed.note ? 4000 : 1500);
       } catch (err) {
         msg.style.color = '#c0392b';
         msg.textContent = err.message || 'Something went wrong. Please try again.';
