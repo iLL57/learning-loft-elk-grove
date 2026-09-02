@@ -6,7 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const PORTAL_URL = "https://thelearninglofteg.com/portal/";
+// Override with the PORTAL_URL secret for local testing
+// (e.g. http://localhost:3001/portal/); unset it before go-live.
+const PORTAL_URL = Deno.env.get("PORTAL_URL") || "https://thelearninglofteg.com/portal/";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
