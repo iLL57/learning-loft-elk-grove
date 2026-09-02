@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parent Portal — The Learning Loft of Elk Grove</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="/images/favicon-256.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon-180.png">
+  <link rel="stylesheet" href="/css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="admin-body">
+
+  <!-- ── Login Screen ── -->
+  <div id="loginScreen" class="admin-login">
+    <div class="admin-login__card">
+      <img src="/images/primary-logo-warm-web-transparent.png" alt="The Learning Loft" class="admin-login__logo">
+      <h2>Parent Portal</h2>
+      <p>Sign in to view your family's documents, calendar, and forms.</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        <p id="loginError" class="admin-error" style="display:none"></p>
+        <button type="submit" class="form-submit">Sign In</button>
+      </form>
+      <p style="text-align:center; margin-top:1rem;">
+        <a href="#" id="forgotPasswordLink" style="font-size:.85rem; color:var(--text-muted);">Forgot your password?</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Forgot Password Screen ── -->
+  <div id="forgotPasswordScreen" class="admin-login" style="display:none">
+    <div class="admin-login__card">
+      <img src="/images/primary-logo-warm-web-transparent.png" alt="The Learning Loft" class="admin-login__logo">
+      <h2>Reset Password</h2>
+      <p>Enter your email and we'll send you a link to set a new password.</p>
+      <form id="forgotPasswordForm">
+        <div class="form-group">
+          <label for="forgotEmail">Email</label>
+          <input type="email" id="forgotEmail" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <p id="forgotPasswordMessage" class="admin-error" style="display:none"></p>
+        <button type="submit" class="form-submit">Send Reset Link</button>
+      </form>
+      <p style="text-align:center; margin-top:1rem;">
+        <a href="#" id="backToLoginLink" style="font-size:.85rem; color:var(--text-muted);">Back to sign in</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Set New Password Screen (reached via emailed invite / reset link) ── -->
+  <div id="resetPasswordScreen" class="admin-login" style="display:none">
+    <div class="admin-login__card">
+      <img src="/images/primary-logo-warm-web-transparent.png" alt="The Learning Loft" class="admin-login__logo">
+      <h2>Set Your Password</h2>
+      <p>Choose a password for your parent portal account.</p>
+      <form id="resetPasswordForm">
+        <div class="form-group">
+          <label for="newPassword">New Password</label>
+          <input type="password" id="newPassword" placeholder="••••••••" required autocomplete="new-password" minlength="8" />
+        </div>
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" placeholder="••••••••" required autocomplete="new-password" minlength="8" />
+        </div>
+        <p id="resetPasswordError" class="admin-error" style="display:none"></p>
+        <button type="submit" class="form-submit">Set Password</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Portal ── -->
+  <div id="portalApp" style="display:none">
+
+    <header class="admin-topbar">
+      <div class="admin-topbar__inner">
+        <div class="admin-topbar__brand">
+          <img src="/images/horizontal-nav-logo-soft-web-transparent.png" alt="The Learning Loft" class="admin-topbar__logo">
+          <span class="admin-topbar__badge">Parent Portal</span>
+        </div>
+        <div class="admin-topbar__right">
+          <span id="portalUserEmail" class="admin-topbar__user"></span>
+          <button id="logoutBtn" class="admin-topbar__logout">Sign Out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="portal-main">
+
+      <!-- Account not linked to a family -->
+      <div id="noFamilyNotice" class="portal-card" style="display:none; text-align:center;">
+        <h3 style="margin-bottom:.5rem;">This account isn't linked to an enrolled family yet</h3>
+        <p style="color:var(--text-body);">
+          If your family is enrolled and you think this is a mistake, please email
+          <a href="mailto:info@thelearninglofteg.com">info@thelearninglofteg.com</a>.
+        </p>
+      </div>
+
+      <div id="portalContent" style="display:none">
+        <p class="eyebrow">Parent Portal</p>
+        <h1 id="welcomeHeading" style="font-family:var(--font-head); font-size:2rem; margin-bottom:1.5rem;">Welcome</h1>
+
+        <div class="portal-columns">
+          <!-- Students -->
+          <section class="portal-card">
+            <h3 class="portal-card__title">Your Students</h3>
+            <div id="studentList"></div>
+          </section>
+
+          <!-- Family info -->
+          <section class="portal-card">
+            <h3 class="portal-card__title">Family Details</h3>
+            <div id="familyDetails" class="admin-detail-grid"></div>
+            <p class="portal-note">
+              Need to update anything here? Email
+              <a href="mailto:info@thelearninglofteg.com">info@thelearninglofteg.com</a>.
+            </p>
+          </section>
+        </div>
+
+        <!-- Section links -->
+        <h2 style="font-family:var(--font-head); font-size:1.5rem; margin:2.5rem 0 1rem;">Resources</h2>
+        <div class="portal-grid">
+          <div class="portal-tile portal-tile--soon">
+            <h4>Documents</h4>
+            <p>Parent handbook, policies, and program forms.</p>
+            <span class="portal-tile__soon">Coming soon</span>
+          </div>
+          <div class="portal-tile portal-tile--soon">
+            <h4>Calendar</h4>
+            <p>Important dates, closures, and events.</p>
+            <span class="portal-tile__soon">Coming soon</span>
+          </div>
+          <div class="portal-tile portal-tile--soon">
+            <h4>Field Trips</h4>
+            <p>Trip details, waivers, and authorizations.</p>
+            <span class="portal-tile__soon">Coming soon</span>
+          </div>
+          <div class="portal-tile portal-tile--soon">
+            <h4>Staff</h4>
+            <p>Meet the team and how to reach them.</p>
+            <span class="portal-tile__soon">Coming soon</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const { createClient } = window.supabase;
+    const sb = createClient(
+      'https://otmuflfpogtpkzqrclmm.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90bXVmbGZwb2d0cGt6cXJjbG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MzA1NTQsImV4cCI6MjA5OTIwNjU1NH0._FBPP-VskInqSNHaUQLOZmwWWcFf1ERHwMCB5_KcJ0Y',
+      {
+        // Invite / recovery links land here from a different browser than the
+        // admin who sent them, so they arrive as implicit-flow hash tokens
+        // (#access_token=...&type=invite), not PKCE. Matches admin.html.
+        auth: { flowType: 'implicit' },
+      }
+    );
+
+    const GRADE_LABELS = { TK: 'TK', K: 'Kindergarten', '1': '1st Grade', '2': '2nd Grade', '3': '3rd Grade', '4': '4th Grade', '5': '5th Grade', '6': '6th Grade' };
+
+    function showScreen(name) {
+      ['loginScreen', 'forgotPasswordScreen', 'resetPasswordScreen', 'portalApp'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
+      document.getElementById(name).style.display = (name === 'portalApp') ? 'block' : 'flex';
+    }
+
+    // The URL is the source of truth for "arrived via an invite/reset link and
+    // still needs to set a password" — Supabase's PASSWORD_RECOVERY event is
+    // unreliable (often only SIGNED_IN fires). Cleared once the password is set.
+    let isPasswordSetupLink = /[?&#]type=(recovery|invite)\b/.test(window.location.href);
+
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if (session && isPasswordSetupLink) {
+        history.replaceState(null, '', window.location.pathname);
+        showScreen('resetPasswordScreen');
+        return;
+      }
+      if (session) {
+        showScreen('portalApp');
+        document.getElementById('portalUserEmail').textContent = session.user.email;
+        loadPortal();
+      } else {
+        showScreen('loginScreen');
+      }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const err = document.getElementById('loginError');
+      btn.textContent = 'Signing in…'; btn.disabled = true;
+      err.style.display = 'none';
+      const { error } = await sb.auth.signInWithPassword({
+        email: document.getElementById('loginEmail').value.trim(),
+        password: document.getElementById('loginPassword').value,
+      });
+      if (error) {
+        err.textContent = 'Invalid email or password.';
+        err.style.display = 'block';
+        btn.textContent = 'Sign In'; btn.disabled = false;
+      }
+    });
+
+    document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      showScreen('forgotPasswordScreen');
+    });
+    document.getElementById('backToLoginLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      showScreen('loginScreen');
+    });
+
+    document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const msg = document.getElementById('forgotPasswordMessage');
+      const email = document.getElementById('forgotEmail').value.trim();
+      btn.textContent = 'Sending…'; btn.disabled = true;
+      msg.style.display = 'none';
+      await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + window.location.pathname,
+      });
+      msg.style.color = 'var(--green-dark)';
+      msg.textContent = 'If that email is registered, a reset link is on its way.';
+      msg.style.display = 'block';
+      btn.textContent = 'Send Reset Link'; btn.disabled = false;
+    });
+
+    document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const err = document.getElementById('resetPasswordError');
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      err.style.display = 'none';
+      if (newPassword !== confirmPassword) {
+        err.textContent = 'Passwords do not match.';
+        err.style.display = 'block';
+        return;
+      }
+      btn.textContent = 'Setting password…'; btn.disabled = true;
+      const { error } = await sb.auth.updateUser({ password: newPassword });
+      if (error) {
+        err.textContent = error.message || 'Something went wrong. Please try again.';
+        err.style.display = 'block';
+        btn.textContent = 'Set Password'; btn.disabled = false;
+        return;
+      }
+      isPasswordSetupLink = false;
+      const { data: { session } } = await sb.auth.getSession();
+      showScreen('portalApp');
+      document.getElementById('portalUserEmail').textContent = session?.user?.email || '';
+      loadPortal();
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => sb.auth.signOut());
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function statusPill(ok, okLabel, pendingLabel) {
+      return `<span class="portal-pill portal-pill--${ok ? 'ok' : 'pending'}">${ok ? okLabel : pendingLabel}</span>`;
+    }
+
+    async function loadPortal() {
+      const content = document.getElementById('portalContent');
+      const notice = document.getElementById('noFamilyNotice');
+
+      // Scope to the families this user is a guardian of. Needed because an
+      // account can also be an admin (staff enrolling their own kids), and
+      // an admin's RLS view of `families` is every family — my_family_ids()
+      // is the guardian link specifically.
+      const { data: famIds, error: idErr } = await sb.rpc('my_family_ids');
+      if (idErr) {
+        notice.style.display = 'block';
+        notice.querySelector('h3').textContent = 'Something went wrong loading your family';
+        notice.querySelector('p').textContent = 'Please refresh, or email info@thelearninglofteg.com if it keeps happening.';
+        content.style.display = 'none';
+        return;
+      }
+      const ids = (famIds || []).map(r => (typeof r === 'string' ? r : r.my_family_ids));
+      if (!ids.length) {
+        notice.style.display = 'block';
+        content.style.display = 'none';
+        return;
+      }
+
+      const { data: families, error } = await sb
+        .from('families')
+        .select('*, enrolled_students(*), family_guardians(*)')
+        .in('id', ids);
+
+      if (error) {
+        notice.style.display = 'block';
+        notice.querySelector('h3').textContent = 'Something went wrong loading your family';
+        notice.querySelector('p').textContent = 'Please refresh, or email info@thelearninglofteg.com if it keeps happening.';
+        content.style.display = 'none';
+        return;
+      }
+
+      if (!families || families.length === 0) {
+        notice.style.display = 'block';
+        content.style.display = 'none';
+        return;
+      }
+
+      notice.style.display = 'none';
+      content.style.display = 'block';
+
+      // A guardian normally belongs to exactly one family; render the first.
+      const fam = families[0];
+      document.getElementById('welcomeHeading').textContent = `Welcome, the ${fam.family_name} family`;
+
+      const students = (fam.enrolled_students || []).slice().sort((a, b) => a.student_name.localeCompare(b.student_name));
+      document.getElementById('studentList').innerHTML = students.length
+        ? students.map(s => `
+            <div class="portal-student">
+              <div class="portal-student__head">
+                <strong>${esc(s.student_name)}</strong>
+                <span class="portal-student__grade">${esc(GRADE_LABELS[s.grade_level] || s.grade_level)}</span>
+              </div>
+              <div class="portal-student__meta">
+                ${s.program_day ? `<span>${esc(s.program_day)}</span>` : ''}
+                ${statusPill(s.documents_signed, 'Documents signed', 'Documents pending')}
+                ${statusPill(s.initial_payment_received, 'Enrollment fee paid', 'Enrollment fee due')}
+              </div>
+            </div>
+          `).join('')
+        : '<p style="color:var(--text-body);">No students on file yet.</p>';
+
+      const g = (fam.family_guardians || []).map(x => esc(x.name || x.email)).join(', ');
+      document.getElementById('familyDetails').innerHTML = `
+        <div><strong>Primary Guardian</strong><p>${esc(fam.primary_guardian_name || '—')}</p></div>
+        <div><strong>Email</strong><p>${esc(fam.primary_email || '—')}</p></div>
+        <div><strong>Phone</strong><p>${esc(fam.primary_phone || '—')}</p></div>
+        <div><strong>Portal Access</strong><p>${g || '—'}</p></div>
+      `;
+    }
+  </script>
+</body>
+</html>

@@ -104,6 +104,7 @@
       <div class="admin-tabs__inner">
         <button class="admin-tab active" data-tab="submissions">Submissions</button>
         <button class="admin-tab" data-tab="students">Enrolled Students</button>
+        <button class="admin-tab" data-tab="families">Families</button>
         <button class="admin-tab" data-tab="leads">Leads &amp; Outreach</button>
       </div>
     </div>
@@ -221,6 +222,20 @@
         </div>
       </div>
 
+      <!-- ── Families Tab ── -->
+      <div id="tab-families" class="admin-panel" style="display:none">
+        <div class="admin-panel-head">
+          <h3>Families</h3>
+          <button class="btn btn--green" id="addFamilyBtn">+ Add Family</button>
+        </div>
+        <p style="color:var(--text-body); font-size:.9rem; margin-bottom:1.25rem;">
+          Each family is what parents log in to see in the
+          <a href="/portal/" target="_blank">Parent Portal</a>. Invite a guardian to give them portal access.
+        </p>
+        <div id="unassignedStudents"></div>
+        <div id="familiesList"><p class="admin-empty">Loading…</p></div>
+      </div>
+
       <!-- ── Leads Tab ── -->
       <div id="tab-leads" class="admin-panel" style="display:none">
         <div class="admin-panel-head">
@@ -282,6 +297,13 @@
           </div>
         </div>
         <div class="form-group">
+          <label>Family</label>
+          <select name="familyId">
+            <option value="">— Unassigned —</option>
+          </select>
+          <span style="font-size:.75rem; color:var(--text-muted);">Links this student to a family record for the Parent Portal.</span>
+        </div>
+        <div class="form-group">
           <label>Age</label>
           <input type="text" name="studentAge" placeholder="e.g. 8" />
         </div>
@@ -329,6 +351,78 @@
         </div>
         <input type="hidden" name="editId" />
         <button type="submit" class="form-submit">Save Student</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Family Modal ── -->
+  <div id="familyModal" class="admin-modal" style="display:none">
+    <div class="admin-modal__overlay" id="familyModalOverlay"></div>
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="closeFamilyModal">&times;</button>
+      <h3 id="familyModalTitle">Add Family</h3>
+      <form id="familyForm">
+        <div class="form-group">
+          <label>Family Name <span class="req">*</span></label>
+          <input type="text" name="familyName" required placeholder="e.g. Burton" />
+        </div>
+        <div class="form-group">
+          <label>Primary Guardian Name</label>
+          <input type="text" name="primaryGuardianName" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Primary Email</label>
+            <input type="email" name="primaryEmail" />
+          </div>
+          <div class="form-group">
+            <label>Primary Phone</label>
+            <input type="tel" name="primaryPhone" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <input type="text" name="address" />
+        </div>
+        <div class="form-group">
+          <label>Emergency Contacts</label>
+          <textarea name="emergencyContacts" rows="2" placeholder="Name, relationship, phone"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea name="notes" rows="2"></textarea>
+        </div>
+        <input type="hidden" name="editId" />
+        <button type="submit" class="form-submit">Save Family</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Invite to Portal Modal ── -->
+  <div id="inviteModal" class="admin-modal" style="display:none">
+    <div class="admin-modal__overlay" id="inviteModalOverlay"></div>
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="closeInviteModal">&times;</button>
+      <h3>Invite to Parent Portal</h3>
+      <p id="inviteFamilyLabel" style="color:var(--text-body); font-size:.9rem; margin-bottom:1rem;"></p>
+      <form id="inviteForm">
+        <div class="form-group">
+          <label>Email <span class="req">*</span></label>
+          <input type="email" name="email" required autocomplete="off" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Guardian Name</label>
+            <input type="text" name="name" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label>Relationship</label>
+            <input type="text" name="relationship" placeholder="e.g. Mother" autocomplete="off" />
+          </div>
+        </div>
+        <p id="inviteMessage" class="admin-error" style="display:none"></p>
+        <input type="hidden" name="familyId" />
+        <button type="submit" class="form-submit">Send Invite</button>
       </form>
     </div>
   </div>
@@ -415,7 +509,20 @@
     // later TOKEN_REFRESHED event doesn't bounce the user back to this screen.
     let isPasswordSetupLink = /[?&#]type=(recovery|invite)\b/.test(window.location.href);
 
-    sb.auth.onAuthStateChange((event, session) => {
+    // Rejects a valid session that isn't an admin (e.g. an enrolled parent
+    // who has a portal account in the same Supabase project). Returns true
+    // if the caller should stop — the user has been signed out / redirected.
+    async function rejectIfNotAdmin() {
+      const { data: isAdmin, error } = await sb.rpc('is_admin');
+      if (error || !isAdmin) {
+        await sb.auth.signOut();
+        window.location.replace('/portal/');
+        return true;
+      }
+      return false;
+    }
+
+    sb.auth.onAuthStateChange(async (event, session) => {
       if (session && isPasswordSetupLink) {
         // Safe to strip the one-time token from the URL now — Supabase's own
         // client already consumed it to establish this session. Stripping it
@@ -425,6 +532,7 @@
         return;
       }
       if (session) {
+        if (await rejectIfNotAdmin()) return;
         showScreen('adminApp');
         document.getElementById('adminUserEmail').textContent = session.user.email;
         loadAll();
@@ -499,6 +607,7 @@
         return;
       }
       isPasswordSetupLink = false;
+      if (await rejectIfNotAdmin()) return;
       const { data: { session } } = await sb.auth.getSession();
       showScreen('adminApp');
       document.getElementById('adminUserEmail').textContent = session?.user?.email || '';
@@ -588,7 +697,7 @@
       return { idea: badge('badge--blue','Idea'), in_progress: badge('badge--gold','In Progress'), completed: badge('badge--green','Completed'), paused: badge('badge--muted','Paused') }[s] || badge('badge--muted', s);
     }
 
-    function loadAll() { loadSubmissions(); loadStudents(); loadLeads(); }
+    function loadAll() { loadSubmissions(); loadStudents(); loadFamilies(); loadLeads(); }
 
     // ── Submissions ──
     let allSubs = [];
@@ -898,8 +1007,8 @@
         <tr>
           <td><strong>${r.student_name}</strong></td>
           <td>${GRADE_LABELS[r.grade_level] || r.grade_level}</td>
-          <td>${r.parent_name}</td>
-          <td><a href="mailto:${r.email}">${r.email}</a></td>
+          <td>${r.parent_name || '—'}${r.family_id ? '' : ' <span class="badge badge--muted" title="Not linked to a family">no family</span>'}</td>
+          <td><a href="mailto:${r.email}">${r.email || '—'}</a></td>
           <td><button class="toggle-flag" data-id="${r.id}" data-field="documents_signed" data-value="${r.documents_signed}">${r.documents_signed ? badge('badge--green', 'Signed') : badge('badge--muted', 'Awaiting')}</button></td>
           <td><button class="toggle-flag" data-id="${r.id}" data-field="initial_payment_received" data-value="${r.initial_payment_received}">${r.initial_payment_received ? badge('badge--green', 'Paid') : badge('badge--muted', 'Awaiting')}</button></td>
           <td style="white-space:nowrap">${fmt(r.enrollment_date)}</td>
@@ -931,9 +1040,11 @@
       const form = document.getElementById('studentForm');
       document.getElementById('studentModalTitle').textContent = student ? 'Edit Student' : 'Add Enrolled Student';
       form.reset();
+      populateFamilySelect();
       if (student) {
         form.studentName.value    = student.student_name || '';
         form.gradeLevel.value     = student.grade_level   || '';
+        form.familyId.value       = student.family_id     || '';
         form.studentAge.value     = student.student_age   || '';
         form.parentName.value     = student.parent_name  || '';
         form.email.value          = student.email        || '';
@@ -953,14 +1064,18 @@
     document.getElementById('closeStudentModal').addEventListener('click',  () => document.getElementById('studentModal').style.display = 'none');
     document.getElementById('studentModalOverlay').addEventListener('click', () => document.getElementById('studentModal').style.display = 'none');
 
+    let studentSaving = false;
     document.getElementById('studentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (studentSaving) return;
+      studentSaving = true;
       const f = e.target;
       const btn = f.querySelector('button[type="submit"]');
       btn.textContent = 'Saving…'; btn.disabled = true;
       const payload = {
         student_name:    f.studentName.value.trim(),
         grade_level:     f.gradeLevel.value,
+        family_id:       f.familyId.value || null,
         student_age:     f.studentAge.value.trim(),
         parent_name:     f.parentName.value.trim(),
         email:           f.email.value.trim(),
@@ -976,7 +1091,245 @@
       else     { await sb.from('enrolled_students').insert(payload); }
       document.getElementById('studentModal').style.display = 'none';
       btn.textContent = 'Save Student'; btn.disabled = false;
+      studentSaving = false;
       loadStudents();
+      loadFamilies();
+    });
+
+    // ── Families ──
+    let allFamilies = [];
+    let guardiansByFamily = {};
+
+    async function loadFamilies() {
+      const [{ data: fams }, { data: guardians }, { data: students }] = await Promise.all([
+        sb.from('families').select('*').order('family_name'),
+        sb.from('family_guardians').select('*'),
+        sb.from('enrolled_students').select('*'),
+      ]);
+      allFamilies = fams || [];
+      guardiansByFamily = {};
+      (guardians || []).forEach(g => { (guardiansByFamily[g.family_id] ||= []).push(g); });
+      populateFamilySelect();
+      renderFamilies(students || []);
+    }
+
+    function populateFamilySelect() {
+      const sel = document.querySelector('#studentForm select[name="familyId"]');
+      if (!sel) return;
+      const current = sel.value;
+      sel.innerHTML = '<option value="">— Unassigned —</option>' +
+        allFamilies.map(f => `<option value="${f.id}">${f.family_name}</option>`).join('');
+      sel.value = current;
+    }
+
+    function renderFamilies(students) {
+      const byFamily = {};
+      const unassigned = [];
+      students.forEach(s => {
+        if (s.family_id) (byFamily[s.family_id] ||= []).push(s);
+        else unassigned.push(s);
+      });
+
+      const unBox = document.getElementById('unassignedStudents');
+      const famOpts = allFamilies.map(f => `<option value="${f.id}">${f.family_name}</option>`).join('');
+      unBox.innerHTML = unassigned.length ? `
+        <div class="admin-card" style="padding:1.25rem 1.5rem; margin-bottom:1.25rem; border:1px solid var(--terracotta); background:var(--terracotta-light);">
+          <strong style="color:var(--terracotta-dark);">${unassigned.length} enrolled student${unassigned.length > 1 ? 's' : ''} not linked to a family</strong>
+          <p style="font-size:.85rem; color:var(--text-body); margin:.35rem 0 .85rem;">
+            Pick a family for each. Create one with <strong>+ Add Family</strong> first if it doesn't exist yet.
+          </p>
+          ${unassigned.map(s => `
+            <div style="display:flex; align-items:center; gap:.75rem; padding:.4rem 0;">
+              <span style="min-width:9rem; font-size:.9rem;"><strong>${s.student_name}</strong> <span style="color:var(--text-muted);">(${GRADE_LABELS[s.grade_level] || s.grade_level})</span></span>
+              <select class="assign-family" data-id="${s.id}" style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.4rem .6rem; font-family:var(--font-body); font-size:.85rem;">
+                <option value="">— Choose family —</option>
+                ${famOpts}
+              </select>
+            </div>
+          `).join('')}
+        </div>` : '';
+      unBox.querySelectorAll('.assign-family').forEach(sel => {
+        sel.addEventListener('change', async () => {
+          if (!sel.value) return;
+          sel.disabled = true;
+          const { error } = await sb.from('enrolled_students').update({ family_id: sel.value }).eq('id', sel.dataset.id);
+          if (error) { alert('Could not assign: ' + error.message); sel.disabled = false; return; }
+          loadStudents();
+          loadFamilies();
+        });
+      });
+
+      const list = document.getElementById('familiesList');
+      if (!allFamilies.length) {
+        list.innerHTML = '<p class="admin-empty">No families yet.</p>';
+        return;
+      }
+      list.innerHTML = allFamilies.map(f => {
+        const kids = (byFamily[f.id] || []).sort((a, b) => a.student_name.localeCompare(b.student_name));
+        const guardians = guardiansByFamily[f.id] || [];
+        return `
+          <div class="admin-card" style="padding:1.5rem; margin-bottom:1rem;">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem;">
+              <div>
+                <strong style="font-size:1.05rem;">${f.family_name} Family</strong>
+                <span style="color:var(--text-muted); font-size:.85rem;"> · ${kids.length} student${kids.length === 1 ? '' : 's'}</span>
+              </div>
+              <div style="display:flex; gap:.5rem; flex-shrink:0; align-items:center;">
+                <button class="admin-link edit-family" data-id="${f.id}">Edit</button>
+                <button class="admin-link delete-family" data-id="${f.id}" style="color:#c0392b;">Delete</button>
+                <button class="btn btn--green invite-guardian" data-id="${f.id}" style="padding:.35rem .8rem; font-size:.8rem;">+ Invite to Portal</button>
+              </div>
+            </div>
+            <div class="admin-detail-grid" style="margin-top:1rem;">
+              <div><strong>Guardian</strong><p>${f.primary_guardian_name || '—'}</p></div>
+              <div><strong>Email</strong><p>${f.primary_email ? `<a href="mailto:${f.primary_email}">${f.primary_email}</a>` : '—'}</p></div>
+              <div><strong>Phone</strong><p>${f.primary_phone || '—'}</p></div>
+              <div><strong>Address</strong><p>${f.address || '—'}</p></div>
+            </div>
+            <div style="margin-top:1rem;">
+              <strong style="font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted);">Students</strong>
+              <p style="font-size:.9rem; color:var(--text-body); margin-top:.25rem;">
+                ${kids.length ? kids.map(k => `${k.student_name} (${GRADE_LABELS[k.grade_level] || k.grade_level}${k.program_day ? ', ' + k.program_day : ''})`).join(' · ') : 'None linked yet'}
+              </p>
+            </div>
+            <div style="margin-top:.85rem;">
+              <strong style="font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted);">Portal Access</strong>
+              <p style="font-size:.9rem; color:var(--text-body); margin-top:.25rem;">
+                ${guardians.length
+                  ? guardians.map(g => `${g.name || g.email}${g.accepted_at ? '' : ' <span style="color:var(--text-muted);">(invited ' + fmt(g.invited_at) + ')</span>'}`).join(' · ')
+                  : 'No one invited yet'}
+              </p>
+            </div>
+          </div>`;
+      }).join('');
+
+      list.querySelectorAll('.edit-family').forEach(btn => {
+        btn.addEventListener('click', () => openFamilyModal(allFamilies.find(f => f.id === btn.dataset.id)));
+      });
+      list.querySelectorAll('.invite-guardian').forEach(btn => {
+        btn.addEventListener('click', () => inviteGuardian(allFamilies.find(f => f.id === btn.dataset.id)));
+      });
+      list.querySelectorAll('.delete-family').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const fam = allFamilies.find(f => f.id === btn.dataset.id);
+          const kids = (byFamily[fam.id] || []).length;
+          const guards = (guardiansByFamily[fam.id] || []).length;
+          let warn = `Delete the ${fam.family_name} family?`;
+          if (kids)   warn += `\n\n${kids} student${kids === 1 ? '' : 's'} will become unassigned (not deleted — you can reassign them).`;
+          if (guards) warn += `\n\n${guards} portal guardian${guards === 1 ? '' : 's'} will lose access to the portal.`;
+          if (!confirm(warn)) return;
+          btn.disabled = true;
+          const { error } = await sb.from('families').delete().eq('id', fam.id);
+          if (error) { alert('Could not delete: ' + error.message); btn.disabled = false; return; }
+          loadStudents();
+          loadFamilies();
+        });
+      });
+    }
+
+    function openFamilyModal(family) {
+      const form = document.getElementById('familyForm');
+      document.getElementById('familyModalTitle').textContent = family ? 'Edit Family' : 'Add Family';
+      form.reset();
+      if (family) {
+        form.familyName.value           = family.family_name || '';
+        form.primaryGuardianName.value   = family.primary_guardian_name || '';
+        form.primaryEmail.value          = family.primary_email || '';
+        form.primaryPhone.value          = family.primary_phone || '';
+        form.address.value               = family.address || '';
+        form.emergencyContacts.value     = family.emergency_contacts || '';
+        form.notes.value                 = family.notes || '';
+        form.editId.value                = family.id;
+      } else {
+        form.editId.value = '';
+      }
+      document.getElementById('familyModal').style.display = 'flex';
+    }
+
+    document.getElementById('addFamilyBtn').addEventListener('click', () => openFamilyModal(null));
+    document.getElementById('closeFamilyModal').addEventListener('click', () => document.getElementById('familyModal').style.display = 'none');
+    document.getElementById('familyModalOverlay').addEventListener('click', () => document.getElementById('familyModal').style.display = 'none');
+
+    let familySaving = false;
+    document.getElementById('familyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (familySaving) return;
+      familySaving = true;
+      const f = e.target;
+      const btn = f.querySelector('button[type="submit"]');
+      btn.textContent = 'Saving…'; btn.disabled = true;
+      const payload = {
+        family_name:            f.familyName.value.trim(),
+        primary_guardian_name:  f.primaryGuardianName.value.trim() || null,
+        primary_email:          f.primaryEmail.value.trim() || null,
+        primary_phone:          f.primaryPhone.value.trim() || null,
+        address:                f.address.value.trim() || null,
+        emergency_contacts:     f.emergencyContacts.value.trim() || null,
+        notes:                  f.notes.value.trim() || null,
+      };
+      const id = f.editId.value;
+      if (id) { await sb.from('families').update(payload).eq('id', id); }
+      else     { await sb.from('families').insert(payload); }
+      document.getElementById('familyModal').style.display = 'none';
+      btn.textContent = 'Save Family'; btn.disabled = false;
+      familySaving = false;
+      loadFamilies();
+    });
+
+    function inviteGuardian(family) {
+      const form = document.getElementById('inviteForm');
+      form.reset();
+      document.getElementById('inviteMessage').style.display = 'none';
+      document.getElementById('inviteFamilyLabel').textContent = `Give a guardian of the ${family.family_name} family access to the portal. They'll get an email with a link to set a password.`;
+      form.familyId.value     = family.id;
+      form.email.value        = family.primary_email || '';
+      form.name.value         = family.primary_guardian_name || '';
+      form.querySelector('button[type="submit"]').textContent = 'Send Invite';
+      form.querySelector('button[type="submit"]').disabled = false;
+      document.getElementById('inviteModal').style.display = 'flex';
+    }
+
+    document.getElementById('closeInviteModal').addEventListener('click', () => document.getElementById('inviteModal').style.display = 'none');
+    document.getElementById('inviteModalOverlay').addEventListener('click', () => document.getElementById('inviteModal').style.display = 'none');
+
+    document.getElementById('inviteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      const btn = f.querySelector('button[type="submit"]');
+      const msg = document.getElementById('inviteMessage');
+      btn.textContent = 'Sending…'; btn.disabled = true;
+      msg.style.display = 'none';
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) throw new Error('Your session expired. Sign in again.');
+        const res = await fetch('https://otmuflfpogtpkzqrclmm.supabase.co/functions/v1/parent-invite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+          body: JSON.stringify({
+            familyId: f.familyId.value,
+            email: f.email.value.trim(),
+            name: f.name.value.trim(),
+            relationship: f.relationship.value.trim(),
+          }),
+        });
+        const body = await res.text();
+        let parsed = {};
+        try { parsed = JSON.parse(body); } catch (_) {}
+        if (!res.ok) {
+          throw new Error(parsed.error || 'Something went wrong. Please try again.');
+        }
+        msg.style.color = 'var(--green-dark)';
+        msg.textContent = `Invite sent to ${f.email.value.trim()}.${parsed.note || ''}`;
+        msg.style.display = 'block';
+        btn.textContent = 'Sent ✓';
+        loadFamilies();
+        setTimeout(() => { document.getElementById('inviteModal').style.display = 'none'; }, parsed.note ? 4000 : 1500);
+      } catch (err) {
+        msg.style.color = '#c0392b';
+        msg.textContent = err.message || 'Something went wrong. Please try again.';
+        msg.style.display = 'block';
+        btn.textContent = 'Send Invite'; btn.disabled = false;
+      }
     });
 
     // ── Leads ──
