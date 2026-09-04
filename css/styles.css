@@ -1226,7 +1226,15 @@ em { font-style: italic; }
   justify-content: space-between;
 }
 .admin-topbar__brand { display: flex; align-items: center; gap: .85rem; }
-.admin-topbar__logo  { height: 40px; width: auto; display: block; }
+/* The soft full-colour logo goes muddy on the dark green bar — knock it
+   out to solid white so it reads cleanly and matches the white "ADMIN"
+   badge and the outline buttons. */
+.admin-topbar__logo  {
+  height: 44px;
+  width: auto;
+  display: block;
+  filter: brightness(0) invert(1);
+}
 .admin-topbar__badge {
   background: rgba(255,255,255,.15);
   color: rgba(255,255,255,.9);
