@@ -106,6 +106,7 @@
         <button class="admin-tab" data-tab="students">Enrolled Students</button>
         <button class="admin-tab" data-tab="families">Families</button>
         <button class="admin-tab" data-tab="leads">Leads &amp; Outreach</button>
+        <button class="admin-tab" data-tab="contact">Contact Messages</button>
       </div>
     </div>
 
@@ -253,6 +254,38 @@
         </div>
         <div id="leadsGrid" class="leads-grid">
           <p class="admin-empty">Loading…</p>
+        </div>
+      </div>
+
+      <!-- ── Contact Messages Tab ── -->
+      <div id="tab-contact" class="admin-panel" style="display:none">
+        <div class="admin-panel-head">
+          <h3>Contact Messages</h3>
+          <select id="filterContact" style="border:1px solid var(--border); border-radius:var(--r-sm); padding:.5rem .75rem; font-size:.82rem; font-family:var(--font-body); color:var(--text);">
+            <option value="all">All Statuses</option>
+            <option value="new">New</option>
+            <option value="replied">Replied</option>
+          </select>
+        </div>
+        <div class="admin-card">
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Subject</th>
+                  <th>Message</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="contactBody">
+                <tr><td colspan="7" class="admin-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -656,6 +689,10 @@
     function badge(cls, label) {
       return `<span class="badge ${cls}">${label}</span>`;
     }
+    // Escape user-submitted text before interpolating into innerHTML.
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
     const GRADE_LABELS = { TK: 'TK', K: 'K', '1': '1st', '2': '2nd', '3': '3rd', '4': '4th', '5': '5th', '6': '6th' };
     const GRADE_ORDER = ['TK', 'K', '1', '2', '3', '4', '5', '6'];
     const GRADE_CAPACITY = 10;
@@ -696,8 +733,11 @@
     function leadBadge(s) {
       return { idea: badge('badge--blue','Idea'), in_progress: badge('badge--gold','In Progress'), completed: badge('badge--green','Completed'), paused: badge('badge--muted','Paused') }[s] || badge('badge--muted', s);
     }
+    function contactBadge(s) {
+      return { new: badge('badge--blue','New'), replied: badge('badge--green','Replied') }[s] || badge('badge--muted', s);
+    }
 
-    function loadAll() { loadSubmissions(); loadStudents(); loadFamilies(); loadLeads(); }
+    function loadAll() { loadSubmissions(); loadStudents(); loadFamilies(); loadLeads(); loadContact(); }
 
     // ── Submissions ──
     let allSubs = [];
@@ -1413,6 +1453,50 @@
       btn.textContent = 'Save Idea'; btn.disabled = false;
       loadLeads();
     });
+
+    // ── Contact Messages ──
+    let allContact = [];
+    async function loadContact() {
+      const { data } = await sb.from('contact_submissions').select('*').order('created_at', { ascending: false });
+      allContact = data || [];
+      renderContact();
+    }
+
+    function filteredContact() {
+      const filter = document.getElementById('filterContact').value;
+      return filter === 'all' ? allContact : allContact.filter(r => r.status === filter);
+    }
+
+    function renderContact() {
+      const body = document.getElementById('contactBody');
+      const rows = filteredContact();
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="7" class="admin-empty">${allContact.length ? 'No messages match this filter.' : 'No contact messages yet.'}</td></tr>`;
+        return;
+      }
+      body.innerHTML = rows.map(r => `
+        <tr>
+          <td style="white-space:nowrap">${fmt(r.created_at)}</td>
+          <td><strong>${esc(r.first_name)} ${esc(r.last_name)}</strong></td>
+          <td><a href="mailto:${encodeURIComponent(r.email)}">${esc(r.email)}</a></td>
+          <td>${esc(r.phone) || '—'}</td>
+          <td>${esc(r.subject) || '—'}</td>
+          <td class="notes-cell" title="${esc(r.message)}">${esc(r.message)}</td>
+          <td><button class="toggle-contact-status" data-id="${r.id}" data-status="${esc(r.status)}">${contactBadge(r.status)}</button></td>
+        </tr>
+      `).join('');
+      body.querySelectorAll('.toggle-contact-status').forEach(btn => {
+        btn.style.cssText = 'background:none; border:none; padding:0; cursor:pointer;';
+        btn.title = 'Click to toggle';
+        btn.addEventListener('click', async () => {
+          const newStatus = btn.dataset.status === 'new' ? 'replied' : 'new';
+          await sb.from('contact_submissions').update({ status: newStatus }).eq('id', btn.dataset.id);
+          loadContact();
+        });
+      });
+    }
+
+    document.getElementById('filterContact').addEventListener('change', renderContact);
   </script>
 </body>
 </html>
