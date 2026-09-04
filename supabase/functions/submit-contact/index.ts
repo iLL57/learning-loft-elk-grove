@@ -6,6 +6,12 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Escape submitted text before interpolating into notification-email HTML.
+const esc = (s: unknown) =>
+  String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!),
+  );
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -51,6 +57,7 @@ Deno.serve(async (req) => {
     const resendKey = Deno.env.get("RESEND_API_KEY");
     const notifyEmail = Deno.env.get("NOTIFY_EMAIL");
     const fullName = `${firstName} ${lastName}`;
+    const fullNameHtml = esc(fullName);
 
     if (resendKey) {
       // Notify admin
@@ -68,13 +75,13 @@ Deno.serve(async (req) => {
               subject: `New Contact Message — ${fullName}`,
               html: `
                 <h2>New Contact Message</h2>
-                <p><strong>Name:</strong> ${fullName}</p>
-                <p><strong>Email:</strong> ${email}</p>
-                <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
-                <p><strong>Subject:</strong> ${subject || "Not specified"}</p>
+                <p><strong>Name:</strong> ${fullNameHtml}</p>
+                <p><strong>Email:</strong> ${esc(email)}</p>
+                <p><strong>Phone:</strong> ${phone ? esc(phone) : "Not provided"}</p>
+                <p><strong>Subject:</strong> ${subject ? esc(subject) : "Not specified"}</p>
                 <hr>
                 <p><strong>Message:</strong></p>
-                <p>${message.replace(/\n/g, "<br>")}</p>
+                <p>${esc(message).replace(/\n/g, "<br>")}</p>
                 <hr>
                 <p style="color:#888; font-size:12px;">Submitted via the Learning Loft website contact form. Review it in the admin portal.</p>
               `,
@@ -98,7 +105,7 @@ Deno.serve(async (req) => {
             to: email,
             subject: "We received your message — The Learning Loft of Elk Grove",
             html: `
-              <h2>Thank you, ${firstName}!</h2>
+              <h2>Thank you, ${esc(firstName)}!</h2>
               <p>We've received your message and will be in touch within 2-3 business days.</p>
               <p>Questions in the meantime? Just reply to this email or reach out at info@thelearninglofteg.com.</p>
               <p style="margin-top:1.5rem;">Warmly,<br>The Learning Loft of Elk Grove</p>
