@@ -304,6 +304,12 @@
         return;
       }
 
+      // Record that this guardian has signed in (first time only) so the
+      // admin Families tab can show "Active" instead of "Invited".
+      sb.rpc('mark_guardian_active').then(({ error }) => {
+        if (error) console.warn('mark_guardian_active failed:', error.message);
+      });
+
       const { data: families, error } = await sb
         .from('families')
         .select('*, enrolled_students(*), family_guardians(*)')

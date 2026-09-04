@@ -1234,14 +1234,32 @@
             </div>
             <div style="margin-top:.85rem;">
               <strong style="font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted);">Portal Access</strong>
-              <p style="font-size:.9rem; color:var(--text-body); margin-top:.25rem;">
-                ${guardians.length
-                  ? guardians.map(g => `${esc(g.name || g.email)}${g.accepted_at ? '' : ' <span style="color:var(--text-muted);">(invited ' + fmt(g.invited_at) + ')</span>'}`).join(' · ')
-                  : 'No one invited yet'}
-              </p>
+              ${guardians.length ? `
+                <div style="margin-top:.5rem; display:flex; flex-direction:column; gap:.5rem;">
+                  ${guardians.map(g => `
+                    <div style="display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; font-size:.88rem;">
+                      <span>${esc(g.name || g.email)}${g.name ? ` <span style="color:var(--text-muted);">${esc(g.email)}</span>` : ''}</span>
+                      ${g.accepted_at ? badge('badge--green', 'Active') : badge('badge--muted', 'Invited')}
+                      <span style="color:var(--text-muted); font-size:.78rem;">${g.accepted_at ? 'since ' + fmt(g.accepted_at) : 'invited ' + fmt(g.invited_at)}</span>
+                      <span style="flex:1; min-width:1rem;"></span>
+                      <button class="admin-link guardian-reset" data-id="${g.id}" data-email="${esc(g.email)}">Send reset</button>
+                      <button class="admin-link guardian-revoke" data-id="${g.id}" data-name="${esc(g.name || g.email)}" style="color:#c0392b;">Revoke</button>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : '<p style="font-size:.9rem; color:var(--text-body); margin-top:.25rem;">No one invited yet</p>'}
             </div>
           </div>`;
       }).join('');
+
+      list.querySelectorAll('.guardian-reset').forEach(btn => {
+        btn.addEventListener('click', () => guardianAction('reset', btn.dataset.id,
+          `Send a password-reset email to ${btn.dataset.email}?`));
+      });
+      list.querySelectorAll('.guardian-revoke').forEach(btn => {
+        btn.addEventListener('click', () => guardianAction('revoke', btn.dataset.id,
+          `Revoke portal access for ${btn.dataset.name}?\n\nTheir login is also deleted if it isn't an admin account or used by another family.`));
+      });
 
       list.querySelectorAll('.edit-family').forEach(btn => {
         btn.addEventListener('click', () => openFamilyModal(allFamilies.find(f => f.id === btn.dataset.id)));
@@ -1315,6 +1333,30 @@
       familySaving = false;
       loadFamilies();
     });
+
+    async function guardianAction(action, guardianId, confirmMsg) {
+      if (!confirm(confirmMsg)) return;
+      const { data: { session } } = await sb.auth.getSession();
+      let res, body = {};
+      try {
+        res = await fetch('https://otmuflfpogtpkzqrclmm.supabase.co/functions/v1/parent-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+          body: JSON.stringify({ action, guardianId }),
+        });
+        try { body = JSON.parse(await res.text()); } catch (_) {}
+      } catch (_) {
+        alert('Network error. Please try again.');
+        return;
+      }
+      if (!res.ok) { alert(body.error || 'Something went wrong. Please try again.'); return; }
+      if (action === 'reset') {
+        alert('Password-reset email sent.');
+      } else {
+        alert(body.accountDeleted ? 'Access revoked. Their unused login was also deleted.' : 'Access revoked.');
+      }
+      loadFamilies();
+    }
 
     function inviteGuardian(family) {
       const form = document.getElementById('inviteForm');
