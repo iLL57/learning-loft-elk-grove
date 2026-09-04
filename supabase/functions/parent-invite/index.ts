@@ -10,6 +10,14 @@ const corsHeaders = {
 // (e.g. http://localhost:3001/portal/); unset it before go-live.
 const PORTAL_URL = Deno.env.get("PORTAL_URL") || "https://thelearninglofteg.com/portal/";
 
+// Max guardians a parent can have on their own family. Admins bypass this.
+const GUARDIAN_CAP = 5;
+
+const esc = (s: unknown) =>
+  String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!),
+  );
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -32,12 +40,37 @@ async function findUserByEmail(admin: ReturnType<typeof createClient>, email: st
   return null;
 }
 
+// Let the school know when a parent (not an admin) adds a co-guardian.
+async function notifyAdminOfGuardianInvite(familyName: string, inviterEmail: string, invitedEmail: string) {
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  const notifyEmail = Deno.env.get("NOTIFY_EMAIL");
+  if (!resendKey || !notifyEmail) return;
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "The Learning Loft <enrollments@thelearninglofteg.com>",
+        to: notifyEmail,
+        subject: `Parent portal: a guardian was added to the ${familyName} family`,
+        html: `
+          <p><strong>${esc(inviterEmail)}</strong> invited <strong>${esc(invitedEmail)}</strong>
+          to the <strong>${esc(familyName)}</strong> family's parent portal.</p>
+          <p>Review it on the Families tab of the admin dashboard.</p>
+        `,
+      }),
+    });
+  } catch (err) {
+    console.error("Admin notification failed:", err);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
-    // ── Caller must be a logged-in admin ──
+    // ── Caller must be logged in ──
     const authHeader = req.headers.get("Authorization") || "";
     const authClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -51,14 +84,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-
-    const { data: roleRow } = await admin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (!roleRow) return json({ error: "Admins only" }, 403);
 
     // ── Input ──
     const body = await req.json().catch(() => ({}));
@@ -75,11 +100,40 @@ Deno.serve(async (req) => {
       .single();
     if (famError || !family) return json({ error: "Family not found" }, 404);
 
+    // ── Authorize: an admin, OR a guardian inviting to their OWN family ──
+    const { data: roleRow } = await admin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    const isAdmin = !!roleRow;
+
+    let invitedByParent = false;
+    if (!isAdmin) {
+      const { data: myLink } = await admin
+        .from("family_guardians")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("family_id", familyId)
+        .maybeSingle();
+      if (!myLink) return json({ error: "You can only invite someone to your own family." }, 403);
+
+      const { count } = await admin
+        .from("family_guardians")
+        .select("id", { count: "exact", head: true })
+        .eq("family_id", familyId);
+      if ((count || 0) >= GUARDIAN_CAP) {
+        return json({
+          error: `This family already has the maximum of ${GUARDIAN_CAP} guardians. Contact the school to add another.`,
+        }, 400);
+      }
+      invitedByParent = true;
+    }
+
     // ── Resolve the auth user and send exactly ONE email ──
     // New account  -> inviteUserByEmail sends Supabase's "invite" email.
     // Existing one -> resetPasswordForEmail sends Supabase's "reset" email.
-    // (Both land on /portal/ which shows a set-password screen.) Nothing
-    // else sends mail, so the parent never gets a duplicate.
     let userId: string;
     let emailNote = "";
 
@@ -113,10 +167,15 @@ Deno.serve(async (req) => {
           name,
           relationship,
           invited_at: new Date().toISOString(),
+          invited_by: user.id,
         },
         { onConflict: "family_id,user_id" },
       );
     if (linkError) return json({ error: "Invite sent but linking to the family failed. Try again." }, 500);
+
+    if (invitedByParent) {
+      await notifyAdminOfGuardianInvite(family.family_name, user.email || "a parent", email);
+    }
 
     return json({ success: true, userId, note: emailNote || undefined });
   } catch (err) {

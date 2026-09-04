@@ -131,6 +131,39 @@
           </section>
         </div>
 
+        <!-- Guardians -->
+        <section class="portal-card" style="margin-top:1.5rem;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+            <h3 class="portal-card__title" style="margin-bottom:0;">Guardians</h3>
+            <button id="addGuardianBtn" class="btn btn--green" style="font-size:.85rem; padding:.5rem 1rem;">+ Invite a guardian</button>
+          </div>
+          <p id="guardianSuccess" style="display:none; margin-top:.85rem; font-size:.88rem; color:var(--green-dark);"></p>
+          <div id="guardianList" style="margin-top:1rem;"></div>
+
+          <form id="guardianForm" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
+            <p style="font-size:.88rem; color:var(--text-body); margin-bottom:.85rem;">
+              They'll get an email with a link to set their own password. They'll see the same family information you do.
+            </p>
+            <div class="form-group">
+              <label for="guardianEmail">Email</label>
+              <input type="email" id="guardianEmail" required autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label for="guardianName">Name</label>
+              <input type="text" id="guardianName" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label for="guardianRelationship">Relationship <span style="color:var(--text-muted); font-weight:400;">(optional)</span></label>
+              <input type="text" id="guardianRelationship" placeholder="e.g. Father, Grandparent" autocomplete="off" />
+            </div>
+            <p id="guardianMsg" class="admin-error" style="display:none;"></p>
+            <div style="display:flex; gap:.6rem;">
+              <button type="submit" class="btn btn--green" style="font-size:.88rem;">Send Invite</button>
+              <button type="button" id="cancelGuardianBtn" class="btn btn--outline" style="font-size:.88rem;">Cancel</button>
+            </div>
+          </form>
+        </section>
+
         <!-- Section links -->
         <h2 style="font-family:var(--font-head); font-size:1.5rem; margin:2.5rem 0 1rem;">Resources</h2>
         <div class="portal-grid">
@@ -353,14 +386,82 @@
           `).join('')
         : '<p style="color:var(--text-body);">No students on file yet.</p>';
 
-      const g = (fam.family_guardians || []).map(x => esc(x.name || x.email)).join(', ');
       document.getElementById('familyDetails').innerHTML = `
         <div><strong>Primary Guardian</strong><p>${esc(fam.primary_guardian_name || '—')}</p></div>
         <div><strong>Email</strong><p>${esc(fam.primary_email || '—')}</p></div>
         <div><strong>Phone</strong><p>${esc(fam.primary_phone || '—')}</p></div>
-        <div><strong>Portal Access</strong><p>${g || '—'}</p></div>
       `;
+
+      currentFamilyId = fam.id;
+      renderGuardians(fam.family_guardians || []);
     }
+
+    let currentFamilyId = null;
+
+    function renderGuardians(guardians) {
+      const list = document.getElementById('guardianList');
+      const sorted = guardians.slice().sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
+      list.innerHTML = sorted.length
+        ? sorted.map(x => `
+            <div style="display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; padding:.4rem 0; border-bottom:1px solid var(--border); font-size:.92rem;">
+              <span><strong>${esc(x.name || x.email)}</strong>${x.name ? ` <span style="color:var(--text-muted);">${esc(x.email)}</span>` : ''}</span>
+              <span class="portal-pill portal-pill--${x.accepted_at ? 'ok' : 'pending'}">${x.accepted_at ? 'Active' : 'Invited'}</span>
+              ${x.relationship ? `<span style="color:var(--text-muted); font-size:.82rem;">${esc(x.relationship)}</span>` : ''}
+            </div>
+          `).join('')
+        : '<p style="color:var(--text-body);">No guardians yet.</p>';
+    }
+
+    const guardianForm = document.getElementById('guardianForm');
+    document.getElementById('addGuardianBtn').addEventListener('click', () => {
+      guardianForm.style.display = 'block';
+      document.getElementById('addGuardianBtn').style.display = 'none';
+      document.getElementById('guardianEmail').focus();
+    });
+    document.getElementById('cancelGuardianBtn').addEventListener('click', () => {
+      guardianForm.reset();
+      guardianForm.style.display = 'none';
+      document.getElementById('guardianMsg').style.display = 'none';
+      document.getElementById('addGuardianBtn').style.display = '';
+    });
+
+    guardianForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = guardianForm.querySelector('button[type="submit"]');
+      const msg = document.getElementById('guardianMsg');
+      msg.style.display = 'none';
+      btn.textContent = 'Sending…'; btn.disabled = true;
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        const res = await fetch('https://otmuflfpogtpkzqrclmm.supabase.co/functions/v1/parent-invite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+          body: JSON.stringify({
+            familyId: currentFamilyId,
+            email: document.getElementById('guardianEmail').value.trim(),
+            name: document.getElementById('guardianName').value.trim(),
+            relationship: document.getElementById('guardianRelationship').value.trim(),
+          }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || 'Something went wrong. Please try again.');
+        const sentTo = document.getElementById('guardianEmail').value.trim();
+        guardianForm.reset();
+        guardianForm.style.display = 'none';
+        msg.style.display = 'none';
+        document.getElementById('addGuardianBtn').style.display = '';
+        btn.textContent = 'Send Invite'; btn.disabled = false;
+        const banner = document.getElementById('guardianSuccess');
+        banner.textContent = `Invite sent to ${sentTo}. They'll appear below once they set a password.`;
+        banner.style.display = 'block';
+        loadPortal();
+      } catch (err) {
+        msg.style.color = '#c0392b';
+        msg.textContent = err.message;
+        msg.style.display = 'block';
+        btn.textContent = 'Send Invite'; btn.disabled = false;
+      }
+    });
   </script>
 </body>
 </html>
