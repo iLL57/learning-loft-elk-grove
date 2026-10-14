@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -111,6 +111,103 @@ async function createSquarePaymentLink(
   }
 }
 
+type ConfirmResult =
+  | { ok: true; inserted: Record<string, unknown>[] }
+  | { ok: false; error: string; status: number };
+
+// Shared by "send_package" and "mark_enrolled": validate the confirmed grade
+// for every child, enforce the per-grade capacity, find-or-create the
+// family, and create the enrolled_students rows. Neither SignWell/Square
+// nor any email happens here — callers decide that part.
+async function confirmGradesAndEnroll(
+  supabase: SupabaseClient,
+  submission: Record<string, any>,
+  studentList: Record<string, any>[],
+  confirmedGrades: Record<string, string>,
+): Promise<ConfirmResult> {
+  if (!studentList.length) return { ok: true, inserted: [] };
+
+  const missingGrade = studentList.find((s) => !confirmedGrades[s.id]);
+  if (missingGrade) {
+    return { ok: false, error: `Missing confirmed grade for ${missingGrade.student_name}`, status: 400 };
+  }
+
+  // Enforce the per-grade capacity, counting both already-enrolled students
+  // and every student in this same request targeting the same grade (e.g.
+  // two siblings both confirmed into "K").
+  const { data: existingGradeRows } = await supabase
+    .from("enrolled_students")
+    .select("grade_level");
+  const existingCountByGrade: Record<string, number> = {};
+  for (const row of existingGradeRows || []) {
+    existingCountByGrade[row.grade_level] = (existingCountByGrade[row.grade_level] || 0) + 1;
+  }
+  const pendingCountByGrade: Record<string, number> = {};
+  for (const s of studentList) {
+    const g = confirmedGrades[s.id];
+    pendingCountByGrade[g] = (pendingCountByGrade[g] || 0) + 1;
+  }
+  const fullGrades = Object.entries(pendingCountByGrade)
+    .filter(([grade, pendingCount]) => (existingCountByGrade[grade] || 0) + pendingCount > GRADE_CAPACITY)
+    .map(([grade]) => GRADE_LABELS[grade] || grade);
+  if (fullGrades.length) {
+    return {
+      ok: false,
+      status: 400,
+      error: `Grade level${fullGrades.length > 1 ? "s" : ""} at capacity (max ${GRADE_CAPACITY} per grade): ${fullGrades.join(", ")}`,
+    };
+  }
+
+  // Find or create the family this application enrolls. Identity is the
+  // family record; the portal links guardians to it. Re-running this for
+  // the same submission reuses the same family.
+  let familyId: string | null = null;
+  const { data: existingFam } = await supabase
+    .from("families")
+    .select("id")
+    .or(`source_submission_id.eq.${submission.id},primary_email.eq.${submission.email}`)
+    .limit(1)
+    .maybeSingle();
+  if (existingFam) {
+    familyId = existingFam.id;
+  } else {
+    const nameParts = (submission.parent_name || "").trim().split(/\s+/);
+    const familyName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : (submission.parent_name || "Family");
+    const { data: newFam, error: famError } = await supabase
+      .from("families")
+      .insert({
+        family_name: familyName,
+        primary_guardian_name: submission.parent_name,
+        primary_email: submission.email,
+        primary_phone: submission.phone,
+        source_submission_id: submission.id,
+      })
+      .select("id")
+      .single();
+    if (famError) throw new Error(JSON.stringify(famError));
+    familyId = newFam.id;
+  }
+
+  const { data: inserted, error: insertError } = await supabase.from("enrolled_students").insert(
+    studentList.map((s) => ({
+      family_id: familyId,
+      parent_name: submission.parent_name,
+      email: submission.email,
+      phone: submission.phone,
+      student_name: s.student_name,
+      student_age: "",
+      grade_level: confirmedGrades[s.id],
+      payment_status: "pending",
+      documents_signed: false,
+      initial_payment_received: false,
+      submission_id: submission.id,
+    })),
+  ).select();
+  if (insertError) throw new Error(JSON.stringify(insertError));
+
+  return { ok: true, inserted: inserted || [] };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -139,14 +236,14 @@ Deno.serve(async (req) => {
     }
 
     const { submissionId, action, confirmedGrades } = await req.json();
-    if (!submissionId || !["send_package", "waitlist", "reject"].includes(action)) {
+    if (!submissionId || !["send_package", "mark_enrolled", "waitlist", "reject"].includes(action)) {
       return new Response(JSON.stringify({ error: "Invalid request" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const VALID_GRADES = ["TK", "K", "1", "2", "3", "4", "5", "6"];
-    if (action === "send_package") {
+    if (action === "send_package" || action === "mark_enrolled") {
       if (!confirmedGrades || typeof confirmedGrades !== "object") {
         return new Response(JSON.stringify({ error: "Missing confirmed grade levels" }), {
           status: 400,
@@ -198,89 +295,16 @@ Deno.serve(async (req) => {
       // created and the applicant gets a placeholder message instead of a link.
       let linkRows: { studentName: string; signingUrl: string; paymentUrl: string }[] = [];
 
-      if (studentList.length) {
-        const missingGrade = studentList.find(s => !confirmedGrades[s.id]);
-        if (missingGrade) {
-          return new Response(JSON.stringify({ error: `Missing confirmed grade for ${missingGrade.student_name}` }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
+      const result = await confirmGradesAndEnroll(supabase, submission, studentList, confirmedGrades);
+      if (!result.ok) {
+        return new Response(JSON.stringify({ error: result.error }), {
+          status: result.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const inserted = result.inserted;
 
-        // Enforce the per-grade capacity, counting both already-enrolled
-        // students and every student in this same request targeting the
-        // same grade (e.g. two siblings both confirmed into "K").
-        const { data: existingGradeRows } = await supabase
-          .from("enrolled_students")
-          .select("grade_level");
-        const existingCountByGrade: Record<string, number> = {};
-        for (const row of existingGradeRows || []) {
-          existingCountByGrade[row.grade_level] = (existingCountByGrade[row.grade_level] || 0) + 1;
-        }
-        const pendingCountByGrade: Record<string, number> = {};
-        for (const s of studentList) {
-          const g = confirmedGrades[s.id];
-          pendingCountByGrade[g] = (pendingCountByGrade[g] || 0) + 1;
-        }
-        const fullGrades = Object.entries(pendingCountByGrade)
-          .filter(([grade, pendingCount]) => (existingCountByGrade[grade] || 0) + pendingCount > GRADE_CAPACITY)
-          .map(([grade]) => GRADE_LABELS[grade] || grade);
-        if (fullGrades.length) {
-          return new Response(JSON.stringify({
-            error: `Grade level${fullGrades.length > 1 ? "s" : ""} at capacity (max ${GRADE_CAPACITY} per grade): ${fullGrades.join(", ")}`
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-
-        // Find or create the family this application enrolls. Identity is
-        // the family record; the portal links guardians to it. Re-running
-        // Send Package for the same submission reuses the same family.
-        let familyId: string | null = null;
-        const { data: existingFam } = await supabase
-          .from("families")
-          .select("id")
-          .or(`source_submission_id.eq.${submission.id},primary_email.eq.${submission.email}`)
-          .limit(1)
-          .maybeSingle();
-        if (existingFam) {
-          familyId = existingFam.id;
-        } else {
-          const nameParts = (submission.parent_name || "").trim().split(/\s+/);
-          const familyName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : (submission.parent_name || "Family");
-          const { data: newFam, error: famError } = await supabase
-            .from("families")
-            .insert({
-              family_name: familyName,
-              primary_guardian_name: submission.parent_name,
-              primary_email: submission.email,
-              primary_phone: submission.phone,
-              source_submission_id: submission.id,
-            })
-            .select("id")
-            .single();
-          if (famError) throw new Error(JSON.stringify(famError));
-          familyId = newFam.id;
-        }
-
-        const { data: inserted, error: insertError } = await supabase.from("enrolled_students").insert(
-          studentList.map(s => ({
-            family_id: familyId,
-            parent_name: submission.parent_name,
-            email: submission.email,
-            phone: submission.phone,
-            student_name: s.student_name,
-            student_age: "",
-            grade_level: confirmedGrades[s.id],
-            payment_status: "pending",
-            documents_signed: false,
-            initial_payment_received: false,
-            submission_id: submission.id,
-          }))
-        ).select();
-        if (insertError) throw new Error(JSON.stringify(insertError));
-
+      if (inserted.length) {
         const signwellApiKey = Deno.env.get("SIGNWELL_API_KEY");
         const signwellTemplateId = Deno.env.get("SIGNWELL_TEMPLATE_ID");
         const signwellTestMode = Deno.env.get("SIGNWELL_TEST_MODE") !== "false"; // default true (safe) until owner confirms go-live
@@ -291,7 +315,7 @@ Deno.serve(async (req) => {
           ? "https://connect.squareupsandbox.com"
           : "https://connect.squareup.com";
 
-        for (const row of inserted || []) {
+        for (const row of inserted) {
           const updates: Record<string, unknown> = {};
           let signingUrl = "";
           let paymentUrl = "";
@@ -301,8 +325,8 @@ Deno.serve(async (req) => {
               signwellApiKey, signwellTemplateId, signwellTestMode,
               submission.parent_name, submission.email,
               {
-                student_name: row.student_name,
-                student_name_liability: row.student_name,
+                student_name: row.student_name as string,
+                student_name_liability: row.student_name as string,
                 parent_name: submission.parent_name,
                 parent_phone: submission.phone || "",
                 parent_email: submission.email,
@@ -319,7 +343,7 @@ Deno.serve(async (req) => {
 
           if (squareAccessToken && squareLocationId && squareFeeCents > 0) {
             const link = await createSquarePaymentLink(
-              squareAccessToken, squareLocationId, squareFeeCents, row.id, row.student_name, squareBaseUrl
+              squareAccessToken, squareLocationId, squareFeeCents, row.id as string, row.student_name as string, squareBaseUrl
             );
             if (link) {
               updates.square_payment_link_id = link.id;
@@ -330,10 +354,10 @@ Deno.serve(async (req) => {
           }
 
           if (Object.keys(updates).length) {
-            await supabase.from("enrolled_students").update(updates).eq("id", row.id);
+            await supabase.from("enrolled_students").update(updates).eq("id", row.id as string);
           }
 
-          linkRows.push({ studentName: row.student_name, signingUrl, paymentUrl });
+          linkRows.push({ studentName: row.student_name as string, signingUrl, paymentUrl });
         }
       }
 
@@ -362,6 +386,21 @@ Deno.serve(async (req) => {
           `
         );
       }
+    }
+
+    if (action === "mark_enrolled") {
+      // The family already handled signing/payment outside the system
+      // (walked in, paper forms, cash, etc.) — just put the students on the
+      // roster. No SignWell document, no Square link, no email: an
+      // automated "here's your package" message would be wrong here.
+      const result = await confirmGradesAndEnroll(supabase, submission, studentList, confirmedGrades);
+      if (!result.ok) {
+        return new Response(JSON.stringify({ error: result.error }), {
+          status: result.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      await supabase.from("enrollment_submissions").update({ status: "enrolled" }).eq("id", submissionId);
     }
 
     if (action === "waitlist") {
