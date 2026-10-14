@@ -303,8 +303,8 @@
           <button class="btn btn--green" id="addAlbumBtn">+ Add Album</button>
         </div>
         <p style="color:var(--text-body); font-size:.9rem; margin-bottom:1.25rem;">
-          Photos themselves stay on Google Drive/Photos — this just links to them. A monthly album gets its label from the month; a standing album (like "Student Photos") gets its own title. Make sure each link is shared as
-          <strong>“Anyone with the link”</strong> before publishing, or parents won’t be able to open it.
+          Photos themselves stay on Google Drive/Photos — this just links to them. A monthly album gets its label from the month; a standing album (like "Student Photos") gets its own title. Each link needs to be a
+          <strong>shareable link anyone can open</strong> — in Drive, share the folder as "Anyone with the link"; in Google Photos, use Share &rarr; <strong>Create link</strong> (not "Invite people," which only lets specific people in). A link that only invites named people won't work for parents.
         </p>
         <div class="admin-card">
           <div class="admin-table-wrap">
@@ -605,7 +605,7 @@
         <div class="form-group">
           <label>Google Drive/Photos Link <span class="req">*</span></label>
           <input type="url" name="driveUrl" required placeholder="https://drive.google.com/..." />
-          <span style="font-size:.75rem; color:var(--text-muted);">Share it as "Anyone with the link" first, or parents will hit a permissions wall.</span>
+          <span style="font-size:.75rem; color:var(--text-muted);">Drive: share the folder as "Anyone with the link." Google Photos: Share &rarr; Create link (not "Invite people"). Otherwise parents will hit a permissions wall.</span>
         </div>
         <div class="form-group" style="display:flex; align-items:center; gap:.5rem;">
           <input type="checkbox" name="published" id="albumPublished" checked />
