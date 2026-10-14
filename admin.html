@@ -107,6 +107,7 @@
         <button class="admin-tab" data-tab="families">Families</button>
         <button class="admin-tab" data-tab="leads">Leads &amp; Outreach</button>
         <button class="admin-tab" data-tab="contact">Contact Messages</button>
+        <button class="admin-tab" data-tab="photos">Photo Albums</button>
       </div>
     </div>
 
@@ -283,6 +284,35 @@
               </thead>
               <tbody id="contactBody">
                 <tr><td colspan="7" class="admin-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Photo Albums Tab ── -->
+      <div id="tab-photos" class="admin-panel" style="display:none">
+        <div class="admin-panel-head">
+          <h3>Photo Albums</h3>
+          <button class="btn btn--green" id="addAlbumBtn">+ Add Month</button>
+        </div>
+        <p style="color:var(--text-body); font-size:.9rem; margin-bottom:1.25rem;">
+          Photos themselves stay on Google Drive — this just links each month to its folder. Make sure the Drive folder is shared as
+          <strong>“Anyone with the link”</strong> before publishing, or parents won’t be able to open it.
+        </p>
+        <div class="admin-card">
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Drive Link</th>
+                  <th>Visible to Parents</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="albumsBody">
+                <tr><td colspan="4" class="admin-empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
@@ -506,6 +536,32 @@
         </div>
         <input type="hidden" name="editId" />
         <button type="submit" class="form-submit">Save Idea</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Album Modal ── -->
+  <div id="albumModal" class="admin-modal" style="display:none">
+    <div class="admin-modal__overlay" id="albumModalOverlay"></div>
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="closeAlbumModal">&times;</button>
+      <h3 id="albumModalTitle">Add Month</h3>
+      <form id="albumForm">
+        <div class="form-group">
+          <label>Month <span class="req">*</span></label>
+          <input type="month" name="month" required />
+        </div>
+        <div class="form-group">
+          <label>Google Drive Link <span class="req">*</span></label>
+          <input type="url" name="driveUrl" required placeholder="https://drive.google.com/drive/folders/..." />
+          <span style="font-size:.75rem; color:var(--text-muted);">Share the folder as "Anyone with the link" first, or parents will hit a permissions wall.</span>
+        </div>
+        <div class="form-group" style="display:flex; align-items:center; gap:.5rem;">
+          <input type="checkbox" name="published" id="albumPublished" checked style="width:auto;" />
+          <label for="albumPublished" style="margin:0;">Visible to parents</label>
+        </div>
+        <input type="hidden" name="editId" />
+        <button type="submit" class="form-submit">Save Month</button>
       </form>
     </div>
   </div>
@@ -737,7 +793,7 @@
       return { new: badge('badge--blue','New'), replied: badge('badge--green','Replied') }[s] || badge('badge--muted', s);
     }
 
-    function loadAll() { loadSubmissions(); loadStudents(); loadFamilies(); loadLeads(); loadContact(); }
+    function loadAll() { loadSubmissions(); loadStudents(); loadFamilies(); loadLeads(); loadContact(); loadAlbums(); }
 
     // ── Submissions ──
     let allSubs = [];
@@ -1452,6 +1508,105 @@
       document.getElementById('leadModal').style.display = 'none';
       btn.textContent = 'Save Idea'; btn.disabled = false;
       loadLeads();
+    });
+
+    // ── Photo Albums ──
+    let allAlbums = [];
+
+    function monthLabel(dateStr) {
+      // dateStr is a plain date like "2026-10-01" — parse as local, not UTC,
+      // so the month doesn't shift a day backward in western time zones.
+      const [y, m] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+
+    async function loadAlbums() {
+      const { data } = await sb.from('photo_albums').select('*').order('month', { ascending: false });
+      allAlbums = data || [];
+      renderAlbums();
+    }
+
+    function renderAlbums() {
+      const body = document.getElementById('albumsBody');
+      if (!allAlbums.length) {
+        body.innerHTML = '<tr><td colspan="4" class="admin-empty">No months added yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = allAlbums.map(a => `
+        <tr>
+          <td><strong>${esc(monthLabel(a.month))}</strong></td>
+          <td><a href="${esc(a.drive_url)}" target="_blank" rel="noopener" style="word-break:break-all;">${esc(a.drive_url)}</a></td>
+          <td><button class="toggle-album-published" data-id="${a.id}" data-value="${a.published}">${a.published ? badge('badge--green', 'Visible') : badge('badge--muted', 'Hidden')}</button></td>
+          <td><button class="admin-link edit-album" data-id="${a.id}">Edit</button> &nbsp; <button class="admin-link delete-album" data-id="${a.id}" style="color:#c0392b;">Delete</button></td>
+        </tr>
+      `).join('');
+      body.querySelectorAll('.toggle-album-published').forEach(btn => {
+        btn.style.cssText = 'background:none; border:none; padding:0; cursor:pointer;';
+        btn.title = 'Click to toggle';
+        btn.addEventListener('click', async () => {
+          await sb.from('photo_albums').update({ published: btn.dataset.value !== 'true' }).eq('id', btn.dataset.id);
+          loadAlbums();
+        });
+      });
+      body.querySelectorAll('.edit-album').forEach(btn => {
+        btn.addEventListener('click', () => openAlbumModal(allAlbums.find(a => a.id === btn.dataset.id)));
+      });
+      body.querySelectorAll('.delete-album').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const album = allAlbums.find(a => a.id === btn.dataset.id);
+          if (!confirm(`Delete the ${monthLabel(album.month)} album link? This only removes it from the portal, not the Drive folder itself.`)) return;
+          await sb.from('photo_albums').delete().eq('id', album.id);
+          loadAlbums();
+        });
+      });
+    }
+
+    function openAlbumModal(album) {
+      const form = document.getElementById('albumForm');
+      document.getElementById('albumModalTitle').textContent = album ? 'Edit Month' : 'Add Month';
+      form.reset();
+      if (album) {
+        form.month.value     = album.month.slice(0, 7); // "YYYY-MM-01" -> "YYYY-MM" for the month input
+        form.driveUrl.value  = album.drive_url;
+        form.published.checked = album.published;
+        form.editId.value    = album.id;
+      } else {
+        form.published.checked = true;
+        form.editId.value = '';
+      }
+      document.getElementById('albumModal').style.display = 'flex';
+    }
+
+    document.getElementById('addAlbumBtn').addEventListener('click', () => openAlbumModal(null));
+    document.getElementById('closeAlbumModal').addEventListener('click', () => document.getElementById('albumModal').style.display = 'none');
+    document.getElementById('albumModalOverlay').addEventListener('click', () => document.getElementById('albumModal').style.display = 'none');
+
+    let albumSaving = false;
+    document.getElementById('albumForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (albumSaving) return;
+      albumSaving = true;
+      const f = e.target;
+      const btn = f.querySelector('button[type="submit"]');
+      btn.textContent = 'Saving…'; btn.disabled = true;
+      const payload = {
+        month:     f.month.value + '-01', // "YYYY-MM" -> first-of-month date
+        drive_url: f.driveUrl.value.trim(),
+        published: f.published.checked,
+      };
+      const id = f.editId.value;
+      const { error } = id
+        ? await sb.from('photo_albums').update(payload).eq('id', id)
+        : await sb.from('photo_albums').insert(payload);
+      albumSaving = false;
+      if (error) {
+        alert(error.code === '23505' ? 'There\'s already an album for that month — edit the existing one instead.' : 'Could not save: ' + error.message);
+        btn.textContent = 'Save Month'; btn.disabled = false;
+        return;
+      }
+      document.getElementById('albumModal').style.display = 'none';
+      btn.textContent = 'Save Month'; btn.disabled = false;
+      loadAlbums();
     });
 
     // ── Contact Messages ──

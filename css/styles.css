@@ -1598,6 +1598,58 @@ em { font-style: italic; }
   text-transform: uppercase;
   color: var(--text-muted);
 }
+.portal-tile--link {
+  display: block;
+  transition: transform .15s, box-shadow .15s, border-color .15s;
+}
+.portal-tile--link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--green-sage);
+}
+.portal-tile__arrow {
+  display: inline-block;
+  margin-top: .75rem;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.portal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+.portal-back:hover { color: var(--green); }
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+.album-card {
+  background: var(--white-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 1.75rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: .9rem;
+}
+.album-card__icon {
+  width: 40px; height: 40px;
+  border-radius: var(--r-sm);
+  background: var(--green-pale);
+  color: var(--green-dark);
+  display: flex; align-items: center; justify-content: center;
+}
+.album-card__icon svg { width: 20px; height: 20px; }
+.album-card h4 { font-family: var(--font-head); font-size: 1.3rem; }
 
 @media (max-width: 768px) {
   .portal-columns { grid-template-columns: 1fr; }
