@@ -108,6 +108,7 @@
         <button class="admin-tab" data-tab="leads">Leads &amp; Outreach</button>
         <button class="admin-tab" data-tab="contact">Contact Messages</button>
         <button class="admin-tab" data-tab="photos">Photo Albums</button>
+        <button class="admin-tab" data-tab="documents">Documents</button>
       </div>
     </div>
 
@@ -318,6 +319,36 @@
               </thead>
               <tbody id="albumsBody">
                 <tr><td colspan="4" class="admin-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Documents Tab ── -->
+      <div id="tab-documents" class="admin-panel" style="display:none">
+        <div class="admin-panel-head">
+          <h3>Documents</h3>
+          <button class="btn btn--green" id="addDocumentBtn">+ Upload Document</button>
+        </div>
+        <p style="color:var(--text-body); font-size:.9rem; margin-bottom:1.25rem;">
+          Files you upload here are stored privately and only ever reachable by a signed-in parent — nothing is publicly accessible, unlike the Photo Albums' Drive links.
+        </p>
+        <div class="admin-card">
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>File</th>
+                  <th>Uploaded</th>
+                  <th>Visible to Parents</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="documentsBody">
+                <tr><td colspan="6" class="admin-empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
@@ -571,6 +602,37 @@
     </div>
   </div>
 
+  <!-- ── Document Modal ── -->
+  <div id="documentModal" class="admin-modal" style="display:none">
+    <div class="admin-modal__overlay" id="documentModalOverlay"></div>
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="closeDocumentModal">&times;</button>
+      <h3 id="documentModalTitle">Upload Document</h3>
+      <form id="documentForm">
+        <div class="form-group" id="documentFileGroup">
+          <label>File <span class="req">*</span></label>
+          <input type="file" name="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.heic" />
+          <span id="documentCurrentFile" style="font-size:.78rem; color:var(--text-muted); display:none;"></span>
+        </div>
+        <div class="form-group">
+          <label>Title <span class="req">*</span></label>
+          <input type="text" name="title" required placeholder="e.g. Parent Handbook" />
+        </div>
+        <div class="form-group">
+          <label>Category <span style="color:var(--text-muted); font-weight:400;">(optional)</span></label>
+          <input type="text" name="category" placeholder="e.g. Policies, Forms, Handbook" />
+        </div>
+        <div class="form-group" style="display:flex; align-items:center; gap:.5rem;">
+          <input type="checkbox" name="published" id="documentPublished" checked />
+          <label for="documentPublished" style="margin:0;">Visible to parents</label>
+        </div>
+        <p id="documentFormError" class="admin-error" style="display:none;"></p>
+        <input type="hidden" name="editId" />
+        <button type="submit" class="form-submit" id="documentSubmitBtn">Upload</button>
+      </form>
+    </div>
+  </div>
+
   <script>
     const { createClient } = window.supabase;
     const sb = createClient(
@@ -799,7 +861,7 @@
       return { new: badge('badge--blue','New'), replied: badge('badge--green','Replied') }[s] || badge('badge--muted', s);
     }
 
-    function loadAll() { loadSubmissions(); loadStudents(); loadFamilies(); loadLeads(); loadContact(); loadAlbums(); }
+    function loadAll() { loadSubmissions(); loadStudents(); loadFamilies(); loadLeads(); loadContact(); loadAlbums(); loadDocuments(); }
 
     // ── Submissions ──
     let allSubs = [];
@@ -1646,6 +1708,178 @@
       document.getElementById('albumModal').style.display = 'none';
       btn.textContent = 'Save Month'; btn.disabled = false;
       loadAlbums();
+    });
+
+    // ── Documents ──
+    let allDocuments = [];
+
+    function formatFileSize(bytes) {
+      if (!bytes) return '—';
+      if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    async function loadDocuments() {
+      const { data } = await sb.from('documents').select('*').order('created_at', { ascending: false });
+      allDocuments = data || [];
+      renderDocuments();
+    }
+
+    async function openDocumentSignedUrl(path) {
+      const { data, error } = await sb.storage.from('documents').createSignedUrl(path, 3600);
+      if (error || !data?.signedUrl) { alert('Could not open that file: ' + (error?.message || 'unknown error')); return; }
+      window.open(data.signedUrl, '_blank', 'noopener');
+    }
+
+    function renderDocuments() {
+      const body = document.getElementById('documentsBody');
+      if (!allDocuments.length) {
+        body.innerHTML = '<tr><td colspan="6" class="admin-empty">No documents uploaded yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = allDocuments.map(d => `
+        <tr>
+          <td><strong>${esc(d.title)}</strong></td>
+          <td>${esc(d.category) || '—'}</td>
+          <td><button class="admin-link view-document" data-path="${esc(d.storage_path)}">${esc(d.file_name)}</button> <span style="color:var(--text-muted); font-size:.78rem;">(${formatFileSize(d.file_size)})</span></td>
+          <td style="white-space:nowrap">${fmt(d.created_at)}</td>
+          <td><button class="toggle-doc-published" data-id="${d.id}" data-value="${d.published}">${d.published ? badge('badge--green', 'Visible') : badge('badge--muted', 'Hidden')}</button></td>
+          <td style="white-space:nowrap">
+            <button class="admin-link edit-document" data-id="${d.id}">Edit</button>
+            &nbsp;·&nbsp;
+            <button class="admin-link delete-document" data-id="${d.id}" style="color:#c0392b;">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+
+      body.querySelectorAll('.view-document').forEach(btn => {
+        btn.addEventListener('click', () => openDocumentSignedUrl(btn.dataset.path));
+      });
+      body.querySelectorAll('.toggle-doc-published').forEach(btn => {
+        btn.style.cssText = 'background:none; border:none; padding:0; cursor:pointer;';
+        btn.title = 'Click to toggle';
+        btn.addEventListener('click', async () => {
+          await sb.from('documents').update({ published: btn.dataset.value !== 'true' }).eq('id', btn.dataset.id);
+          loadDocuments();
+        });
+      });
+      body.querySelectorAll('.edit-document').forEach(btn => {
+        btn.addEventListener('click', () => openDocumentModal(allDocuments.find(d => d.id === btn.dataset.id)));
+      });
+      body.querySelectorAll('.delete-document').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const doc = allDocuments.find(d => d.id === btn.dataset.id);
+          if (!confirm(`Delete "${doc.title}"? This removes the file permanently — parents will no longer be able to access it.`)) return;
+          btn.disabled = true;
+          const { error: storageError } = await sb.storage.from('documents').remove([doc.storage_path]);
+          if (storageError) { alert('Could not delete the file: ' + storageError.message); btn.disabled = false; return; }
+          const { error } = await sb.from('documents').delete().eq('id', doc.id);
+          if (error) { alert('File removed, but could not delete its record: ' + error.message); btn.disabled = false; return; }
+          loadDocuments();
+        });
+      });
+    }
+
+    function openDocumentModal(doc) {
+      const form = document.getElementById('documentForm');
+      const fileGroup = document.getElementById('documentFileGroup');
+      const currentFileLabel = document.getElementById('documentCurrentFile');
+      document.getElementById('documentFormError').style.display = 'none';
+      form.reset();
+      if (doc) {
+        document.getElementById('documentModalTitle').textContent = 'Edit Document';
+        form.title.value = doc.title;
+        form.category.value = doc.category || '';
+        form.published.checked = doc.published;
+        form.editId.value = doc.id;
+        form.file.required = false;
+        currentFileLabel.textContent = `Current file: ${doc.file_name} — upload a new document instead if you need to replace it.`;
+        currentFileLabel.style.display = 'block';
+        fileGroup.style.display = 'none';
+        document.getElementById('documentSubmitBtn').textContent = 'Save Changes';
+      } else {
+        document.getElementById('documentModalTitle').textContent = 'Upload Document';
+        form.published.checked = true;
+        form.editId.value = '';
+        form.file.required = true;
+        currentFileLabel.style.display = 'none';
+        fileGroup.style.display = 'block';
+        document.getElementById('documentSubmitBtn').textContent = 'Upload';
+      }
+      document.getElementById('documentModal').style.display = 'flex';
+    }
+
+    document.getElementById('addDocumentBtn').addEventListener('click', () => openDocumentModal(null));
+    document.getElementById('closeDocumentModal').addEventListener('click', () => document.getElementById('documentModal').style.display = 'none');
+    document.getElementById('documentModalOverlay').addEventListener('click', () => document.getElementById('documentModal').style.display = 'none');
+
+    let documentSaving = false;
+    document.getElementById('documentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (documentSaving) return;
+      documentSaving = true;
+      const f = e.target;
+      const btn = document.getElementById('documentSubmitBtn');
+      const errEl = document.getElementById('documentFormError');
+      errEl.style.display = 'none';
+      const id = f.editId.value;
+
+      if (!id) {
+        // New upload: file -> Storage, then a documents row pointing at it.
+        const file = f.file.files[0];
+        if (!file) {
+          errEl.textContent = 'Please choose a file.'; errEl.style.display = 'block';
+          documentSaving = false;
+          return;
+        }
+        btn.textContent = 'Uploading…'; btn.disabled = true;
+        const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        const path = `${Date.now()}-${safeName}`;
+        const { error: uploadError } = await sb.storage.from('documents').upload(path, file, { contentType: file.type || undefined });
+        if (uploadError) {
+          errEl.textContent = 'Upload failed: ' + uploadError.message; errEl.style.display = 'block';
+          btn.textContent = 'Upload'; btn.disabled = false;
+          documentSaving = false;
+          return;
+        }
+        const { error: insertError } = await sb.from('documents').insert({
+          title: f.title.value.trim(),
+          category: f.category.value.trim() || null,
+          storage_path: path,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type || null,
+          published: f.published.checked,
+        });
+        documentSaving = false;
+        if (insertError) {
+          // Don't leave an orphaned file in Storage with no matching record.
+          await sb.storage.from('documents').remove([path]);
+          errEl.textContent = 'Could not save: ' + insertError.message; errEl.style.display = 'block';
+          btn.textContent = 'Upload'; btn.disabled = false;
+          return;
+        }
+        document.getElementById('documentModal').style.display = 'none';
+        btn.textContent = 'Upload'; btn.disabled = false;
+        loadDocuments();
+      } else {
+        // Editing metadata only — the file itself is untouched.
+        btn.textContent = 'Saving…'; btn.disabled = true;
+        const { error } = await sb.from('documents').update({
+          title: f.title.value.trim(),
+          category: f.category.value.trim() || null,
+          published: f.published.checked,
+        }).eq('id', id);
+        documentSaving = false;
+        if (error) {
+          errEl.textContent = 'Could not save: ' + error.message; errEl.style.display = 'block';
+          btn.textContent = 'Save Changes'; btn.disabled = false;
+          return;
+        }
+        document.getElementById('documentModal').style.display = 'none';
+        btn.textContent = 'Save Changes'; btn.disabled = false;
+        loadDocuments();
+      }
     });
 
     // ── Contact Messages ──
