@@ -129,6 +129,10 @@
             <span class="admin-stat-card__val" id="stat-package_sent">—</span>
             <span class="admin-stat-card__label">Package Sent</span>
           </div>
+          <div class="admin-stat-card" data-filter="enrolled">
+            <span class="admin-stat-card__val" id="stat-enrolled">—</span>
+            <span class="admin-stat-card__label">Enrolled</span>
+          </div>
           <div class="admin-stat-card" data-filter="waitlisted">
             <span class="admin-stat-card__val" id="stat-waitlisted">—</span>
             <span class="admin-stat-card__label">Waitlisted</span>
@@ -146,6 +150,7 @@
                 <option value="all">All Statuses</option>
                 <option value="new">New</option>
                 <option value="package_sent">Package Sent</option>
+                <option value="enrolled">Enrolled</option>
                 <option value="waitlisted">Waitlisted</option>
                 <option value="rejected">Rejected</option>
               </select>
@@ -213,7 +218,7 @@
                   <th>Payment</th>
                   <th>Next Due</th>
                   <th>Notes</th>
-                  <th>Edit</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="studentsBody">
@@ -779,6 +784,7 @@
       return {
         new:           badge('badge--blue',  'New'),
         package_sent:  badge('badge--gold',  'Package Sent'),
+        enrolled:      badge('badge--green', 'Enrolled'),
         waitlisted:    badge('badge--muted', 'Waitlisted'),
         rejected:      badge('badge--red',   'Rejected'),
       }[s] || badge('badge--muted', s);
@@ -818,6 +824,7 @@
       document.getElementById('stat-total').textContent          = allSubs.length;
       document.getElementById('stat-new').textContent            = allSubs.filter(r => r.status === 'new').length;
       document.getElementById('stat-package_sent').textContent   = allSubs.filter(r => r.status === 'package_sent').length;
+      document.getElementById('stat-enrolled').textContent       = allSubs.filter(r => r.status === 'enrolled').length;
       document.getElementById('stat-waitlisted').textContent     = allSubs.filter(r => r.status === 'waitlisted').length;
       document.getElementById('stat-rejected').textContent       = allSubs.filter(r => r.status === 'rejected').length;
       renderSubmissions();
@@ -982,6 +989,7 @@
         <div id="actionBar" style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border);">
           <div id="actionButtons" style="display:flex; flex-wrap:wrap; gap:.6rem;">
             <button class="btn btn--green" id="actionSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;" ${isDecided ? 'disabled' : ''}>Send Enrollment Package</button>
+            <button class="btn btn--outline" id="actionMarkEnrolled" style="font-size:.85rem; padding:.6rem 1.2rem;" ${isDecided ? 'disabled' : ''}>Mark as Enrolled (No Package)</button>
             <button class="btn btn--outline" id="actionWaitlist" style="font-size:.85rem; padding:.6rem 1.2rem;" ${isDecided ? 'disabled' : ''}>Add to Waitlist</button>
             <button class="btn btn--outline" id="actionReject" style="font-size:.85rem; padding:.6rem 1.2rem; color:var(--terracotta-dark); border-color:var(--terracotta-dark);" ${isDecided ? 'disabled' : ''}>Reject</button>
           </div>
@@ -993,7 +1001,7 @@
       if (!isDecided) {
         const runAction = async (action, label) => {
           if (!confirm(`${label} for ${r.parent_name}? This will email the applicant.`)) return;
-          const buttons = document.querySelectorAll('#actionSendPackage, #actionWaitlist, #actionReject');
+          const buttons = document.querySelectorAll('#actionSendPackage, #actionMarkEnrolled, #actionWaitlist, #actionReject');
           buttons.forEach(b => b.disabled = true);
           try {
             await callAdminAction(r.id, action);
@@ -1006,7 +1014,11 @@
           }
         };
 
-        document.getElementById('actionSendPackage').addEventListener('click', async () => {
+        // Shared by "Send Enrollment Package" and "Mark as Enrolled" — both
+        // need every student's grade confirmed against live capacity first;
+        // they differ only in which action gets sent and what the confirm
+        // button/message say.
+        const showGradeConfirm = async (action, confirmLabel, confirmMsg, introText) => {
           // Fetch fresh counts right before showing the dropdown so the
           // capacity shown here can't be stale relative to other admin activity.
           await loadStudents();
@@ -1016,7 +1028,7 @@
             return `<option value="${g}" ${currentGuess === g && !full ? 'selected' : ''} ${full ? 'disabled' : ''}>${GRADE_LABELS[g]} (${counts[g]}/${GRADE_CAPACITY}${full ? ' — FULL' : ''})</option>`;
           }).join('');
           document.getElementById('actionBar').innerHTML = `
-            <p style="font-size:.85rem; font-weight:700; color:var(--text); margin-bottom:.75rem;">Confirm each student's grade level before sending the package:</p>
+            <p style="font-size:.85rem; font-weight:700; color:var(--text); margin-bottom:.75rem;">${introText}</p>
             <div style="display:flex; flex-direction:column; gap:.75rem; margin-bottom:1rem;">
               ${students.map(s => {
                 const guessIsFull = s.grade_level && counts[s.grade_level] >= GRADE_CAPACITY;
@@ -1036,12 +1048,12 @@
             </div>
             <p style="font-size:.78rem; color:var(--text-muted); margin-bottom:1rem;">Grades already at ${GRADE_CAPACITY} students are shown as FULL and can't be selected.</p>
             <div style="display:flex; gap:.6rem;">
-              <button class="btn btn--green" id="confirmSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;">Confirm &amp; Send Package</button>
-              <button class="btn btn--outline" id="cancelSendPackage" style="font-size:.85rem; padding:.6rem 1.2rem;">Cancel</button>
+              <button class="btn btn--green" id="confirmGradeAction" style="font-size:.85rem; padding:.6rem 1.2rem;">${confirmLabel}</button>
+              <button class="btn btn--outline" id="cancelGradeAction" style="font-size:.85rem; padding:.6rem 1.2rem;">Cancel</button>
             </div>
           `;
-          document.getElementById('cancelSendPackage').addEventListener('click', () => openSubModal(r));
-          document.getElementById('confirmSendPackage').addEventListener('click', async () => {
+          document.getElementById('cancelGradeAction').addEventListener('click', () => openSubModal(r));
+          document.getElementById('confirmGradeAction').addEventListener('click', async () => {
             const selects = document.querySelectorAll('.confirm-grade');
             const confirmedGrades = {};
             let allSelected = true;
@@ -1050,21 +1062,33 @@
               confirmedGrades[sel.dataset.studentId] = sel.value;
             });
             if (!allSelected) { alert('Please select a grade level for every student.'); return; }
-            if (!confirm(`Send enrollment package for ${r.parent_name}? This will email the applicant.`)) return;
-            document.getElementById('confirmSendPackage').disabled = true;
-            document.getElementById('cancelSendPackage').disabled = true;
+            if (!confirm(confirmMsg)) return;
+            document.getElementById('confirmGradeAction').disabled = true;
+            document.getElementById('cancelGradeAction').disabled = true;
             try {
-              await callAdminAction(r.id, 'send_package', confirmedGrades);
+              await callAdminAction(r.id, action, confirmedGrades);
               document.getElementById('submissionModal').style.display = 'none';
               loadSubmissions();
               loadStudents();
             } catch (err) {
               alert(err.message || 'Something went wrong. Please try again.');
-              document.getElementById('confirmSendPackage').disabled = false;
-              document.getElementById('cancelSendPackage').disabled = false;
+              document.getElementById('confirmGradeAction').disabled = false;
+              document.getElementById('cancelGradeAction').disabled = false;
             }
           });
-        });
+        };
+
+        document.getElementById('actionSendPackage').addEventListener('click', () => showGradeConfirm(
+          'send_package', 'Confirm & Send Package',
+          `Send enrollment package for ${r.parent_name}? This will email the applicant.`,
+          "Confirm each student's grade level before sending the package:",
+        ));
+
+        document.getElementById('actionMarkEnrolled').addEventListener('click', () => showGradeConfirm(
+          'mark_enrolled', 'Confirm & Mark Enrolled',
+          `Mark ${r.parent_name}'s student(s) as enrolled? This will NOT email the applicant or create any signing/payment links — only use this if enrollment already happened outside the system.`,
+          "Confirm each student's grade level before marking them enrolled. No email or SignWell/Square links are sent:",
+        ));
 
         document.getElementById('actionWaitlist').addEventListener('click', () => runAction('waitlist', 'Add to waitlist'));
         document.getElementById('actionReject').addEventListener('click',  () => runAction('reject',   'Reject this application'));
@@ -1111,11 +1135,26 @@
           <td>${payBadge(r.payment_status)}</td>
           <td style="white-space:nowrap">${fmt(r.next_payment_due)}</td>
           <td class="notes-cell">${esc(r.notes) || '—'}</td>
-          <td><button class="admin-link edit-student" data-id="${r.id}">Edit</button></td>
+          <td style="white-space:nowrap">
+            <button class="admin-link edit-student" data-id="${r.id}">Edit</button>
+            &nbsp;·&nbsp;
+            <button class="admin-link delete-student" data-id="${r.id}" style="color:#c0392b;">Delete</button>
+          </td>
         </tr>
       `).join('');
       body.querySelectorAll('.edit-student').forEach(btn => {
         btn.addEventListener('click', () => openStudentModal(allStudents.find(s => s.id === btn.dataset.id)));
+      });
+      body.querySelectorAll('.delete-student').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const student = allStudents.find(s => s.id === btn.dataset.id);
+          if (!confirm(`Remove ${student.student_name} from Enrolled Students? This can't be undone — it does not affect their original application, if any.`)) return;
+          btn.disabled = true;
+          const { error } = await sb.from('enrolled_students').delete().eq('id', student.id);
+          if (error) { alert('Could not delete: ' + error.message); btn.disabled = false; return; }
+          loadStudents();
+          loadFamilies();
+        });
       });
       body.querySelectorAll('.toggle-flag').forEach(btn => {
         btn.style.cssText = 'background:none; border:none; padding:0; cursor:pointer;';
