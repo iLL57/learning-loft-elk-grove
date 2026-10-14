@@ -852,7 +852,7 @@ em { font-style: italic; }
   letter-spacing: .02em;
 }
 .form-group label .req { color: var(--green); margin-left: 2px; }
-.form-group input,
+.form-group input:not([type="checkbox"]):not([type="radio"]),
 .form-group select,
 .form-group textarea {
   width: 100%;
@@ -866,13 +866,23 @@ em { font-style: italic; }
   transition: border-color .2s, box-shadow .2s;
   appearance: none;
 }
-.form-group input:focus,
+.form-group input:not([type="checkbox"]):not([type="radio"]):focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: var(--green);
   box-shadow: 0 0 0 3px rgba(82,100,71,.11);
   background: var(--white-warm);
+}
+/* Checkboxes/radios inside a form-group were inheriting the text-input
+   reset above (appearance:none + full-width + heavy padding), which
+   stripped their native box entirely — no checkmark could ever show. */
+.form-group input[type="checkbox"],
+.form-group input[type="radio"] {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--green);
+  cursor: pointer;
 }
 .form-group select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%239A6A4B' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
@@ -1598,6 +1608,83 @@ em { font-style: italic; }
   font-size: .72rem;
   font-weight: 700;
   letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.portal-tile--link {
+  display: block;
+  transition: transform .15s, box-shadow .15s, border-color .15s;
+}
+.portal-tile--link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--green-sage);
+}
+.portal-tile__arrow {
+  display: inline-block;
+  margin-top: .75rem;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.portal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+.portal-back:hover { color: var(--green); }
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+.album-card {
+  background: var(--white-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 1.75rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: .9rem;
+}
+.album-card__icon {
+  width: 40px; height: 40px;
+  border-radius: var(--r-sm);
+  background: var(--green-pale);
+  color: var(--green-dark);
+  display: flex; align-items: center; justify-content: center;
+}
+.album-card__icon svg { width: 20px; height: 20px; }
+.album-card h4 { font-family: var(--font-head); font-size: 1.3rem; }
+
+.portal-doc-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+.portal-doc-row__icon {
+  width: 38px; height: 38px;
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+  background: var(--terracotta-light);
+  color: var(--terracotta-dark);
+  display: flex; align-items: center; justify-content: center;
+}
+.portal-doc-row__icon svg { width: 18px; height: 18px; }
+.portal-doc-row__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .2rem; }
+.portal-doc-row__info strong { font-size: 1rem; color: var(--text); }
+.portal-doc-row__category {
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .04em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
