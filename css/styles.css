@@ -1663,6 +1663,10 @@ em { font-style: italic; }
 }
 .album-card__icon svg { width: 20px; height: 20px; }
 .album-card h4 { font-family: var(--font-head); font-size: 1.3rem; }
+/* Standing (non-monthly) albums get a warmer accent so they read as
+   "always current" rather than just another entry in the month list. */
+.album-card--pinned { border-color: var(--gold); }
+.album-card--pinned .album-card__icon { background: var(--terracotta-light); color: var(--terracotta-dark); }
 
 .portal-doc-row {
   display: flex;

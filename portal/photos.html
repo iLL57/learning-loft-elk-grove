@@ -38,10 +38,10 @@
       <p class="eyebrow">Parent Portal</p>
       <h1 style="font-family:var(--font-head); font-size:2rem; margin-bottom:.5rem;">Photo Albums</h1>
       <p style="color:var(--text-body); max-width:60ch; margin-bottom:2rem;">
-        Monthly photos from the program, hosted on Google Drive. Each album opens in a new tab.
+        Photos from the program, hosted on Google Drive/Photos. Each album opens in a new tab.
       </p>
 
-      <div id="albumGrid" class="album-grid">
+      <div id="albumSections">
         <p class="admin-empty">Loading…</p>
       </div>
     </main>
@@ -83,26 +83,9 @@
       return a.month ? monthLabel(a.month) : a.title;
     }
 
-    async function loadAlbums() {
-      const grid = document.getElementById('albumGrid');
-      // Standing (no-month) albums first, then monthly albums newest-first.
-      const { data: albums, error } = await sb
-        .from('photo_albums')
-        .select('*')
-        .eq('published', true)
-        .order('month', { ascending: false, nullsFirst: true });
-
-      if (error) {
-        grid.innerHTML = '<p class="admin-empty">Something went wrong loading albums. Please refresh.</p>';
-        return;
-      }
-      if (!albums || !albums.length) {
-        grid.innerHTML = '<p class="admin-empty">No albums yet — check back soon!</p>';
-        return;
-      }
-
-      grid.innerHTML = albums.map(a => `
-        <div class="album-card">
+    function albumCard(a, pinned) {
+      return `
+        <div class="album-card${pinned ? ' album-card--pinned' : ''}">
           <div class="album-card__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="3"/>
@@ -113,7 +96,46 @@
           <h4>${esc(albumLabel(a))}</h4>
           <a class="btn btn--green" href="${esc(a.drive_url)}" target="_blank" rel="noopener" style="align-self:flex-start;">View Photos &rarr;</a>
         </div>
-      `).join('');
+      `;
+    }
+
+    async function loadAlbums() {
+      const container = document.getElementById('albumSections');
+      // Standing (no-month) albums first, then monthly albums newest-first —
+      // matches how they're split into sections below.
+      const { data: albums, error } = await sb
+        .from('photo_albums')
+        .select('*')
+        .eq('published', true)
+        .order('month', { ascending: false, nullsFirst: true });
+
+      if (error) {
+        container.innerHTML = '<p class="admin-empty">Something went wrong loading albums. Please refresh.</p>';
+        return;
+      }
+      if (!albums || !albums.length) {
+        container.innerHTML = '<p class="admin-empty">No albums yet — check back soon!</p>';
+        return;
+      }
+
+      // Split into standing (ongoing, no month) vs monthly — order within
+      // each group is already correct from the query above.
+      const standing = albums.filter(a => !a.month);
+      const monthly = albums.filter(a => a.month);
+
+      container.innerHTML = `
+        ${standing.length ? `
+          <div class="album-grid" style="margin-bottom:2.5rem;">
+            ${standing.map(a => albumCard(a, true)).join('')}
+          </div>
+        ` : ''}
+        ${monthly.length ? `
+          ${standing.length ? '<h2 style="font-family:var(--font-head); font-size:1.3rem; margin-bottom:1rem;">Monthly Albums</h2>' : ''}
+          <div class="album-grid">
+            ${monthly.map(a => albumCard(a, false)).join('')}
+          </div>
+        ` : ''}
+      `;
     }
   </script>
 </body>
