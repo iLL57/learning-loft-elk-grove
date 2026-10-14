@@ -488,7 +488,7 @@
       <p><span class="ui">+ Add Student</span> lets you enter a child directly — useful for a family enrolled outside the normal flow. Each student can be linked to a <strong>Family</strong> so the parents see them in the portal. <span class="ui--warn ui">Delete</span> removes a student from the roster entirely.</p>
 
       <h3>Families</h3>
-      <p>Each family is a card with contact details, the students attached to it, and a <strong>Portal Access</strong> section listing everyone who can log in for that family. This is where you <span class="ui--do ui">+ Invite to Portal</span>. If a student ever shows up as not linked to a family, a banner at the top of this tab lets you attach them with one click.</p>
+      <p>Each family is a card with contact details, the students attached to it, and a <strong>Portal Access</strong> section listing everyone who can log in for that family. This is where you <span class="ui--do ui">+ Invite to Portal</span>, and where you send a guardian a password reset or revoke their access — see <a href="#portal">The parent portal</a>. If a student ever shows up as not linked to a family, a banner at the top of this tab lets you attach them with one click.</p>
 
       <h3>Leads &amp; Outreach</h3>
       <p>A lightweight idea board — completely separate from enrollment. Add an idea with <span class="ui">+ Add Idea</span>, give it a channel (Instagram, a homeschool co-op, a flyer) and a status (<span class="ui">Idea</span>, <span class="ui">In Progress</span>, <span class="ui">Completed</span>, <span class="ui">Paused</span>). Nothing here sends email or touches a family.</p>
@@ -554,7 +554,25 @@
       <p>The parent portal is at <strong>thelearninglofteg.com/portal/</strong>. It’s invite-only — a family can only log in after you’ve invited them from the <strong>Families</strong> tab. Once in, a parent sees their own family only: their children with grade, program days, and paperwork/payment status; the family’s contact details; and the shared Resources tiles — <strong>Photo Albums</strong> and <strong>Documents</strong> are live, with Calendar, Field Trips, and Staff still coming.</p>
 
       <h3>Inviting a guardian</h3>
-      <p>On a family’s card, <span class="ui--do ui">+ Invite to Portal</span> opens a short form — email, name, relationship. The person gets an email to set their own password. A family can have more than one guardian; each gets their own login and they all see the same information. Anyone who hasn’t signed in yet shows an “invited” note next to their name on the family card.</p>
+      <p>On a family’s card, <span class="ui--do ui">+ Invite to Portal</span> opens a short form — email, name, relationship. The person gets an email to set their own password. A family can have more than one guardian; each gets their own login and they all see the same information.</p>
+
+      <h3>Reading the access list</h3>
+      <p>Each guardian on the card shows a status:</p>
+      <ul>
+        <li><span class="ui">Invited</span> — the invitation was sent but they haven’t signed in yet.</li>
+        <li><span class="ui">Active</span> — they’ve signed in and set a password. The date shown is when they first logged in.</li>
+      </ul>
+
+      <h3>Reset and revoke</h3>
+      <ul>
+        <li><span class="ui">Send reset</span> — emails that guardian a link to set a new password. Use it if they’re locked out.</li>
+        <li><span class="ui--warn ui">Revoke</span> — removes that guardian’s access to the family. If their login isn’t used anywhere else (not an admin, not a guardian on another family) the login itself is deleted too. A co-guardian on the same family is never affected.</li>
+      </ul>
+
+      <div class="note">
+        <span class="note__tag">Good to know</span>
+        <p>Parents can invite an additional guardian to <em>their own</em> family from inside the portal (up to five per family). When they do, info@ gets a heads-up email so you’re never surprised by a new login.</p>
+      </div>
     </section>
 
     <section id="media">
@@ -621,6 +639,7 @@
         <li><strong>The confirmed grade sticks.</strong> As above — it becomes the enrolled grade.</li>
         <li><strong>Deleting an enrolled student</strong> removes them from the roster immediately. It doesn’t delete their original application.</li>
         <li><strong>Deleting a family</strong> removes its contact record and every guardian’s portal access. Its students aren’t deleted — they become unlinked and you can reattach them — but the guardians lose access and you’d need to re-invite them.</li>
+        <li><strong>Revoking a guardian</strong> can delete their login (only when it’s unused elsewhere). Re-inviting later starts them fresh with a new password.</li>
         <li><strong>Deleting a document</strong> removes the actual file — there’s no copy kept. Deleting a photo album link only removes the link; the Drive/Photos album is untouched.</li>
         <li><strong>The manual Signed / Paid toggles are overrides.</strong> Normally these update themselves. Flip one by hand only when you know the family completed the step outside the system.</li>
       </ul>
@@ -630,7 +649,7 @@
       <span class="eyebrow" data-num="10">If something looks off</span>
       <h2>Quick checks</h2>
       <ul>
-        <li><strong>A family says they didn’t get an email.</strong> Ask them to check spam for a message from <em>enrollments@thelearninglofteg.com</em>.</li>
+        <li><strong>A family says they didn’t get an email.</strong> Ask them to check spam for a message from <em>enrollments@thelearninglofteg.com</em>. For a portal login, you can use <span class="ui">Send reset</span> on their guardian entry to send a fresh link.</li>
         <li><strong>An application isn’t showing.</strong> Check the status filter on the Submissions tab — you may be filtered to <span class="ui">New</span> when the row is <span class="ui">Package Sent</span> or <span class="ui">Enrolled</span>. Click <span class="ui">Total</span> to see everything.</li>
         <li><strong>Signed or Paid isn’t updating.</strong> It can take a few minutes after the family finishes. If it’s been longer and you’ve confirmed they completed it, flip the toggle by hand.</li>
         <li><strong>A grade won’t let you send a package or mark someone enrolled.</strong> That grade is at its 10-student limit. The family would need a different grade or a spot on the waitlist.</li>
