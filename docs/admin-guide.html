@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Learning Loft Admin Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --parchment: #FAFAF8;
+    --surface: #FFFFFF;
+    --surface-alt: #F2EFE9;
+    --surface-sink: #EDE9E2;
+    --ink: #2F2A22;
+    --body: #63594B;
+    --muted: #948572;
+    --green: #4F6146;
+    --green-soft: #E4EBDD;
+    --terracotta: #B96B4C;
+    --terracotta-soft: #F3E2D7;
+    --gold: #B98F45;
+    --border: #DDCDB4;
+    --border-soft: #EAE1D0;
+    --shadow: 0 1px 2px rgba(47,42,34,.05), 0 8px 24px -12px rgba(47,42,34,.14);
+    --rail-active: var(--green);
+    --on-green: #FFFFFF;
+    --search-hit: #F4D78C;
+    --search-hit-active: var(--terracotta);
+    --on-search-hit-active: #FFFFFF;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --parchment: #201C17;
+      --surface: #2A251F;
+      --surface-alt: #302A23;
+      --surface-sink: #241F1A;
+      --ink: #F0EADE;
+      --body: #C9BEAD;
+      --muted: #9D9081;
+      --green: #A6B79A;
+      --green-soft: #33402D;
+      --terracotta: #DD9F82;
+      --terracotta-soft: #45322A;
+      --gold: #D2A968;
+      --border: #443C31;
+      --border-soft: #37302799;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.5);
+      --on-green: #201C17;
+      --search-hit: #7A6327;
+      --search-hit-active: #DD9F82;
+      --on-search-hit-active: #201C17;
+    }
+  }
+  :root[data-theme="dark"] {
+    --parchment: #201C17;
+    --surface: #2A251F;
+    --surface-alt: #302A23;
+    --surface-sink: #241F1A;
+    --ink: #F0EADE;
+    --body: #C9BEAD;
+    --muted: #9D9081;
+    --green: #A6B79A;
+    --green-soft: #33402D;
+    --terracotta: #DD9F82;
+    --terracotta-soft: #45322A;
+    --gold: #D2A968;
+    --border: #443C31;
+    --border-soft: #37302799;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.5);
+    --on-green: #201C17;
+    --search-hit: #7A6327;
+    --search-hit-active: #DD9F82;
+    --on-search-hit-active: #201C17;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background: var(--parchment);
+    color: var(--body);
+    font-family: 'Nunito Sans', system-ui, -apple-system, sans-serif;
+    font-size: 1.02rem;
+    line-height: 1.68;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 1.5rem 6rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  @media (min-width: 940px) {
+    .page { grid-template-columns: 240px minmax(0, 1fr); gap: 4rem; align-items: start; }
+  }
+
+  /* ---- Masthead ---- */
+  .masthead {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid var(--border);
+    padding: 3.5rem 0 2.25rem;
+    margin-bottom: -1rem;
+  }
+  .crest {
+    display: inline-flex; align-items: center; gap: .6rem;
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 800;
+    font-size: .72rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+  .crest svg { width: 22px; height: 22px; }
+  .masthead h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(2.4rem, 5.5vw, 3.5rem);
+    line-height: 1.06;
+    color: var(--ink);
+    margin: 1.1rem 0 .6rem;
+    text-wrap: balance;
+  }
+  .masthead .standfirst {
+    font-size: 1.12rem;
+    max-width: 44ch;
+    margin: 0;
+  }
+  .masthead .meta {
+    margin-top: 1.5rem;
+    font-size: .82rem;
+    color: var(--muted);
+    letter-spacing: .02em;
+  }
+
+  /* ---- Side nav ---- */
+  .toc { position: sticky; top: 2rem; font-size: .9rem; }
+  .toc__search { position: relative; margin-bottom: 1.5rem; }
+  .toc__search input {
+    width: 100%;
+    font: inherit;
+    font-size: .88rem;
+    padding: .55rem .7rem .55rem 2.1rem;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--ink);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .toc__search input::placeholder { color: var(--muted); }
+  .toc__search input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+  .toc__search svg {
+    position: absolute; left: .65rem; top: 50%; transform: translateY(-50%);
+    width: 15px; height: 15px; color: var(--muted); pointer-events: none;
+  }
+  .toc__search-count {
+    display: block;
+    margin-top: .4rem;
+    font-size: .75rem;
+    color: var(--muted);
+    min-height: 1.1em;
+  }
+  .toc__search-nav {
+    display: none;
+    gap: .35rem;
+    margin-top: .4rem;
+  }
+  .toc__search-nav.is-visible { display: flex; }
+  .toc__search-nav button {
+    font: inherit;
+    font-size: .75rem;
+    font-weight: 700;
+    padding: .2rem .55rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .toc__search-nav button:hover { background: var(--surface-alt); }
+  .toc__label {
+    font-weight: 800; font-size: .68rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: .9rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .1rem; }
+  .toc a {
+    display: block;
+    padding: .38rem .7rem;
+    color: var(--body);
+    text-decoration: none;
+    border-left: 2px solid var(--border-soft);
+    border-radius: 0 4px 4px 0;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .toc a:hover { color: var(--ink); background: var(--surface-alt); }
+  .toc a.is-active { color: var(--green); border-left-color: var(--rail-active); font-weight: 700; background: var(--green-soft); }
+  @media (max-width: 939px) {
+    .toc { position: static; border: 1px solid var(--border); background: var(--surface); border-radius: 14px; padding: 1.25rem 1.4rem; box-shadow: var(--shadow); }
+    .toc a { border-left: none; padding: .3rem 0; }
+    .toc a.is-active { background: none; }
+  }
+
+  /* Search highlighting (applies inside <main>) */
+  mark.search-hit {
+    background: var(--search-hit);
+    color: var(--ink);
+    border-radius: 3px;
+    padding: 0 .1em;
+  }
+  mark.search-hit.search-hit--active {
+    background: var(--search-hit-active);
+    color: var(--on-search-hit-active);
+  }
+
+  /* ---- Content ---- */
+  main { min-width: 0; }
+  section { scroll-margin-top: 2rem; padding-top: 2.5rem; }
+  section + section { border-top: 1px solid var(--border-soft); margin-top: 2.5rem; }
+
+  .eyebrow {
+    font-weight: 800; font-size: .7rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--green);
+    display: flex; align-items: baseline; gap: .6rem;
+  }
+  .eyebrow::before {
+    content: attr(data-num);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; font-weight: 600;
+    color: var(--gold); letter-spacing: 0;
+  }
+  h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(1.7rem, 3.6vw, 2.15rem);
+    line-height: 1.15;
+    color: var(--ink);
+    margin: .55rem 0 1rem;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 800;
+    font-size: 1.06rem;
+    color: var(--ink);
+    margin: 2rem 0 .5rem;
+    letter-spacing: -.01em;
+  }
+  p { margin: 0 0 1rem; max-width: 68ch; }
+  main a { color: var(--green); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  strong { color: var(--ink); font-weight: 700; }
+  ul, ol { max-width: 66ch; margin: 0 0 1rem; padding-left: 1.3rem; }
+  li { margin-bottom: .4rem; }
+  li::marker { color: var(--muted); }
+
+  /* UI-element chip: the exact label a person sees on a button / tab / status */
+  .ui {
+    display: inline-block;
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 700;
+    font-size: .84em;
+    line-height: 1.3;
+    padding: .05em .5em;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface-alt);
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .ui--do { background: var(--green-soft); border-color: color-mix(in srgb, var(--green) 40%, transparent); }
+  .ui--warn { background: var(--terracotta-soft); border-color: color-mix(in srgb, var(--terracotta) 40%, transparent); }
+
+  /* Flow diagram */
+  .flow {
+    display: flex; flex-wrap: wrap; gap: .55rem;
+    margin: 1.5rem 0 2rem;
+    padding: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    align-items: stretch;
+  }
+  .flow__node {
+    flex: 1 1 130px;
+    min-width: 120px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border-soft);
+    border-radius: 11px;
+    padding: .8rem .85rem;
+  }
+  .flow__node b { display: block; color: var(--ink); font-size: .92rem; font-weight: 800; margin-bottom: .1rem; }
+  .flow__node span { font-size: .8rem; color: var(--muted); line-height: 1.4; display: block; }
+  .flow__node--split { background: var(--green-soft); border-color: color-mix(in srgb, var(--green) 35%, transparent); }
+  .flow__arrow { align-self: center; color: var(--gold); font-size: 1.1rem; line-height: 1; padding: 0 .1rem; }
+  @media (max-width: 620px) {
+    .flow { flex-direction: column; }
+    .flow__arrow { transform: rotate(90deg); align-self: flex-start; margin-left: 1.2rem; }
+  }
+
+  /* Stepper */
+  .steps { list-style: none; counter-reset: step; margin: 1.75rem 0 0; padding: 0; }
+  .steps > li {
+    counter-increment: step;
+    position: relative;
+    padding: 0 0 1.9rem 3.4rem;
+    border-left: 2px solid var(--border);
+    margin-left: 1.1rem;
+  }
+  .steps > li:last-child { border-left-color: transparent; padding-bottom: 0; }
+  .steps > li::before {
+    content: counter(step);
+    position: absolute; left: -1.15rem; top: -.2rem;
+    width: 2.3rem; height: 2.3rem;
+    display: grid; place-items: center;
+    background: var(--green); color: var(--on-green);
+    font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 1.15rem;
+    border-radius: 50%;
+    box-shadow: 0 0 0 5px var(--parchment);
+  }
+  .steps h3 { margin-top: 0; }
+  .steps > li > :last-child { margin-bottom: 0; }
+
+  /* Callouts */
+  .note {
+    margin: 1.5rem 0;
+    padding: 1.05rem 1.25rem;
+    border-radius: 12px;
+    border-left: 3px solid var(--green);
+    background: var(--green-soft);
+    font-size: .96rem;
+  }
+  .note p { margin: 0; max-width: none; }
+  .note p + p { margin-top: .5rem; }
+  .note--care { border-left-color: var(--terracotta); background: var(--terracotta-soft); }
+  .note__tag {
+    display: block;
+    font-weight: 800; font-size: .68rem; letter-spacing: .13em;
+    text-transform: uppercase; margin-bottom: .35rem;
+    color: var(--green);
+  }
+  .note--care .note__tag { color: var(--terracotta); }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; margin: 1.5rem 0; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; font-size: .93rem; background: var(--surface); }
+  th, td { text-align: left; padding: .85rem 1.1rem; vertical-align: top; }
+  thead th {
+    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 800;
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr + tr td { border-top: 1px solid var(--border-soft); }
+  td strong { white-space: nowrap; }
+
+  .lede { font-size: 1.1rem; color: var(--body); max-width: 60ch; }
+
+  footer {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border);
+    margin-top: 4rem; padding-top: 1.75rem;
+    font-size: .85rem; color: var(--muted);
+    display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; justify-content: space-between;
+  }
+
+  :focus-visible { outline: 2px solid var(--green); outline-offset: 3px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="masthead">
+    <span class="crest">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 11.5 12 4l9 7.5" />
+        <path d="M5 10.5V20h14v-9.5" />
+        <path d="M10 20v-5h4v5" />
+      </svg>
+      The Learning Loft of Elk Grove
+    </span>
+    <h1>Admin Guide</h1>
+    <p class="standfirst">How the enrollment system works, what each screen does, and how to move a family from “just applied” to “fully enrolled.”</p>
+    <p class="meta">For staff with dashboard access &nbsp;·&nbsp; Covers the admin dashboard and the parent portal &nbsp;·&nbsp; Last updated October 2026</p>
+  </header>
+
+  <nav class="toc" aria-label="Contents">
+    <div class="toc__search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
+      </svg>
+      <input type="search" id="docSearch" placeholder="Search this guide…" aria-label="Search this guide" />
+      <span class="toc__search-count" id="docSearchCount"></span>
+      <div class="toc__search-nav" id="docSearchNav">
+        <button type="button" id="docSearchPrev">&uarr; Prev</button>
+        <button type="button" id="docSearchNext">&darr; Next</button>
+      </div>
+    </div>
+    <div class="toc__label">On this page</div>
+    <ol>
+      <li><a href="#start">Getting in</a></li>
+      <li><a href="#picture">The big picture</a></li>
+      <li><a href="#tabs">A tour of the dashboard</a></li>
+      <li><a href="#enroll">Enrolling a family, step by step</a></li>
+      <li><a href="#portal">The parent portal</a></li>
+      <li><a href="#media">Photo Albums &amp; Documents</a></li>
+      <li><a href="#capacity">Grades &amp; capacity</a></li>
+      <li><a href="#other">Other things you can do</a></li>
+      <li><a href="#care">Handle with care</a></li>
+      <li><a href="#trouble">If something looks off</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section id="start">
+      <span class="eyebrow" data-num="1">Getting in</span>
+      <h2>Signing in to the dashboard</h2>
+      <p class="lede">The admin dashboard lives at <strong>thelearninglofteg.com/admin.html</strong>. It is a private area — visitors to the main site never see it, and there is no link to it from the public pages.</p>
+      <p>Sign in with your email and password. If you have forgotten your password, choose <span class="ui">Forgot your password?</span> on the sign-in screen and you will get an email with a link to set a new one. New staff get an invitation email the first time an account is created for them; the link in that email is where they set their password.</p>
+      <p>Only accounts that have been given admin access can get in. If someone who is a <em>parent</em> in the portal tries to open the dashboard, they are sent to the parent portal instead — the two are completely separate.</p>
+      <h3>The bar across the top</h3>
+      <ul>
+        <li><span class="ui">Admin Guide</span> — opens this document in a new tab.</li>
+        <li><span class="ui">+ Invite Admin</span> — send another staff member an invitation to create their own dashboard login. They get the same access you have.</li>
+        <li><span class="ui">Sign Out</span> — ends your session. Worth doing on any shared or public computer.</li>
+      </ul>
+      <div class="note">
+        <span class="note__tag">Good to know</span>
+        <p>Every admin sees the same data and can take the same actions. There are no “view only” accounts — anyone you invite as an admin can send packages, edit records, and invite other admins.</p>
+      </div>
+    </section>
+
+    <section id="picture">
+      <span class="eyebrow" data-num="2">The big picture</span>
+      <h2>How a family gets enrolled</h2>
+      <p>Everything in the dashboard supports one journey: a family finds the site, applies, your team reviews the application, and — if it is a fit — the family completes paperwork and payment and their child’s spot is confirmed. Once enrolled, the family can be given a login to the parent portal.</p>
+
+      <div class="flow" role="img" aria-label="Enrollment flow: Application, then Review, which branches to Package sent, Waitlist, or Declined; Package sent leads to Forms signed and fee paid, then Enrolled, then Portal access.">
+        <div class="flow__node"><b>Application</b><span>Family submits the online application</span></div>
+        <div class="flow__arrow" aria-hidden="true">→</div>
+        <div class="flow__node flow__node--split"><b>You review</b><span>Package · Mark Enrolled · Waitlist · Decline</span></div>
+        <div class="flow__arrow" aria-hidden="true">→</div>
+        <div class="flow__node"><b>Family acts</b><span>Signs the forms, pays the enrollment fee</span></div>
+        <div class="flow__arrow" aria-hidden="true">→</div>
+        <div class="flow__node"><b>Enrolled</b><span>Spot confirmed, student on the roster</span></div>
+        <div class="flow__arrow" aria-hidden="true">→</div>
+        <div class="flow__node"><b>Portal access</b><span>Family invited to the parent portal</span></div>
+      </div>
+
+      <p>The dashboard’s tabs each hold one part of this: <strong>Submissions</strong> is the applications, <strong>Enrolled Students</strong> is the roster, and <strong>Families</strong> is where portal access is managed. <strong>Photo Albums</strong> and <strong>Documents</strong> feed what families see once they’re in the portal. <strong>Leads &amp; Outreach</strong> and <strong>Contact Messages</strong> are separate tools that don’t touch enrollment.</p>
+      <p>Emails to families are sent automatically at the right moments — an acknowledgement when they apply, the enrollment package when you send it, a waitlist or decline note when you choose those. They all come from <strong>enrollments@thelearninglofteg.com</strong>, and a copy of every new submission notification lands at <strong>info@thelearninglofteg.com</strong>.</p>
+    </section>
+
+    <section id="tabs">
+      <span class="eyebrow" data-num="3">A tour of the dashboard</span>
+      <h2>What each tab is for</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Tab</th><th>What it holds</th><th>You come here to…</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Submissions</strong></td><td>Every application from the online form, newest first</td><td>Review a new application and send a package, mark it enrolled, waitlist, or decline</td></tr>
+            <tr><td><strong>Enrolled Students</strong></td><td>One row per enrolled child, with paperwork and payment status</td><td>Check who has finished signing and paying; update payment info; remove a student</td></tr>
+            <tr><td><strong>Families</strong></td><td>One card per family: contact details, their students, and portal logins</td><td>Invite a parent to the portal, fix contact info, manage guardian access</td></tr>
+            <tr><td><strong>Leads &amp; Outreach</strong></td><td>A simple list of marketing and outreach ideas</td><td>Jot down and track outreach plans — flyers, social posts, co-op visits</td></tr>
+            <tr><td><strong>Contact Messages</strong></td><td>Messages sent through the site’s Contact page</td><td>Read a general question and mark it replied once you’ve answered</td></tr>
+            <tr><td><strong>Photo Albums</strong></td><td>Links to monthly (and standing) Google Drive/Photos albums</td><td>Add, hide, or remove the photo links parents see in the portal</td></tr>
+            <tr><td><strong>Documents</strong></td><td>Files uploaded straight into the site (handbook, forms, policies)</td><td>Upload, rename, hide, or delete a document parents can open</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Submissions</h3>
+      <p>The stat cards along the top (<span class="ui">Total</span>, <span class="ui">New</span>, <span class="ui">Package Sent</span>, <span class="ui">Enrolled</span>, <span class="ui">Waitlisted</span>, <span class="ui">Rejected</span>) are counts — click one to filter the list to just those. Each row shows the date, the parent’s name and email, the children with their grades, and a status. <span class="ui">Export CSV</span> downloads whatever the list is currently showing, so filter first if you want a subset.</p>
+      <p>Click <span class="ui">View</span> on any row to open the full application and take action. A <span class="ui">Package Sent</span> row also shows a small progress line — for example “1 / 2 signed · 0 / 2 paid” — that updates on its own as the family completes things.</p>
+
+      <h3>Enrolled Students</h3>
+      <p>One row per child. The <span class="ui">Documents</span> and <span class="ui">Initial Payment</span> columns show <span class="ui">Signed</span> / <span class="ui">Awaiting</span> and <span class="ui">Paid</span> / <span class="ui">Awaiting</span>. These normally flip on their own when the family signs and pays, but you can click one to flip it by hand if you ever need to. The grade and payment filters narrow the list, and the row of grade counts above the table shows how full each grade is.</p>
+      <p><span class="ui">+ Add Student</span> lets you enter a child directly — useful for a family enrolled outside the normal flow. Each student can be linked to a <strong>Family</strong> so the parents see them in the portal. <span class="ui--warn ui">Delete</span> removes a student from the roster entirely.</p>
+
+      <h3>Families</h3>
+      <p>Each family is a card with contact details, the students attached to it, and a <strong>Portal Access</strong> section listing everyone who can log in for that family. This is where you <span class="ui--do ui">+ Invite to Portal</span>. If a student ever shows up as not linked to a family, a banner at the top of this tab lets you attach them with one click.</p>
+
+      <h3>Leads &amp; Outreach</h3>
+      <p>A lightweight idea board — completely separate from enrollment. Add an idea with <span class="ui">+ Add Idea</span>, give it a channel (Instagram, a homeschool co-op, a flyer) and a status (<span class="ui">Idea</span>, <span class="ui">In Progress</span>, <span class="ui">Completed</span>, <span class="ui">Paused</span>). Nothing here sends email or touches a family.</p>
+
+      <h3>Contact Messages</h3>
+      <p>General questions sent from the site’s Contact page land here. Read one, reply from your own email, then click its status to mark it <span class="ui">Replied</span>. Contact messages are <em>not</em> applications — a family who wants to enroll still needs to fill out the application.</p>
+
+      <h3>Photo Albums &amp; Documents</h3>
+      <p>Both feed the parent portal’s Resources tiles. See <a href="#media">Photo Albums &amp; Documents</a> below for how each works.</p>
+    </section>
+
+    <section id="enroll">
+      <span class="eyebrow" data-num="4">Enrolling a family</span>
+      <h2>Step by step, from application to roster</h2>
+      <p>This is the core workflow. Work through it from the <strong>Submissions</strong> tab.</p>
+
+      <ol class="steps">
+        <li>
+          <h3>The application arrives</h3>
+          <p>When a family submits the online application it appears in <strong>Submissions</strong> as <span class="ui">New</span>. The family gets an automatic “we’ve received your application” email, and a notification goes to info@. Nothing else happens until you review it.</p>
+        </li>
+        <li>
+          <h3>Review it</h3>
+          <p>Click <span class="ui">View</span> to see everything the family submitted — contact details, each child and grade, how many days they want, tuition-exchange interest, whether they’re with a charter program, how they heard about you, and any message they left.</p>
+        </li>
+        <li>
+          <h3>Choose what happens next</h3>
+          <p>Four buttons in the application view:</p>
+          <ul>
+            <li><span class="ui--do ui">Send Enrollment Package</span> — the normal path. Emails the family signing and payment links right away. Continue to step 4.</li>
+            <li><span class="ui">Mark as Enrolled (No Package)</span> — for a family that already signed and paid outside the system (in person, paper forms, etc.). Confirms grades the same way, but creates no SignWell document, no Square link, and sends no email. See the note below.</li>
+            <li><span class="ui">Add to Waitlist</span> — emails the family that they’re on the waitlist. Waitlist offers go out oldest application first.</li>
+            <li><span class="ui--warn ui">Reject</span> — emails the family a polite “not enrolling at this time.” The application is kept, not deleted.</li>
+          </ul>
+        </li>
+        <li>
+          <h3>Confirm each child’s grade</h3>
+          <p>Before the package sends (or the family is marked enrolled), you must confirm the grade level for every child, using the dropdown next to each name. It’s pre-filled with what the family entered, but <strong>whatever you confirm here becomes the child’s official enrolled grade</strong> — so correct it if needed. A grade that’s already full can’t be chosen (see <a href="#capacity">Grades &amp; capacity</a>).</p>
+        </li>
+        <li>
+          <h3>The package goes out</h3>
+          <p>Sending the package does several things at once: it creates a family record and adds each child to <strong>Enrolled Students</strong> (awaiting signature and payment), and it emails the family one message containing, <em>per child</em>, a link to sign the enrollment forms and a link to pay the enrollment fee. The application moves to <span class="ui">Package Sent</span>.</p>
+        </li>
+        <li>
+          <h3>The family signs and pays</h3>
+          <p>Each parent opens their links, signs the forms electronically, and pays the fee. As they do, the <span class="ui">Documents</span> and <span class="ui">Initial Payment</span> markers for that child flip to <span class="ui">Signed</span> and <span class="ui">Paid</span> automatically — you don’t have to do anything. The progress line on the Submissions row keeps count. (Skipped entirely if you used <span class="ui">Mark as Enrolled</span> instead — the application moves straight to <span class="ui">Enrolled</span>.)</p>
+        </li>
+        <li>
+          <h3>Give the family portal access</h3>
+          <p>Once they’re enrolled, go to the <strong>Families</strong> tab, find their card, and choose <span class="ui--do ui">+ Invite to Portal</span>. They get an email to set a password and can then log in to see their child’s status, photos, and documents. This step is optional and can be done whenever you’re ready.</p>
+        </li>
+      </ol>
+
+      <div class="note">
+        <span class="note__tag">Good to know</span>
+        <p>If a link in the package email isn’t ready for some reason, the family’s email tells them your team will follow up — nothing breaks, and the child still appears in Enrolled Students so you can track them.</p>
+      </div>
+    </section>
+
+    <section id="portal">
+      <span class="eyebrow" data-num="5">The parent portal</span>
+      <h2>What families see, and managing their access</h2>
+      <p>The parent portal is at <strong>thelearninglofteg.com/portal/</strong>. It’s invite-only — a family can only log in after you’ve invited them from the <strong>Families</strong> tab. Once in, a parent sees their own family only: their children with grade, program days, and paperwork/payment status; the family’s contact details; and the shared Resources tiles — <strong>Photo Albums</strong> and <strong>Documents</strong> are live, with Calendar, Field Trips, and Staff still coming.</p>
+
+      <h3>Inviting a guardian</h3>
+      <p>On a family’s card, <span class="ui--do ui">+ Invite to Portal</span> opens a short form — email, name, relationship. The person gets an email to set their own password. A family can have more than one guardian; each gets their own login and they all see the same information. Anyone who hasn’t signed in yet shows an “invited” note next to their name on the family card.</p>
+    </section>
+
+    <section id="media">
+      <span class="eyebrow" data-num="6">Photo Albums &amp; Documents</span>
+      <h2>What parents see in Resources, and how to manage it</h2>
+      <p>These are the two live tiles on a parent’s portal dashboard. They work quite differently from each other — worth knowing which is which.</p>
+
+      <h3>Photo Albums</h3>
+      <p>Photos themselves stay on Google Drive or Google Photos — the dashboard just stores a link to each album. <span class="ui">+ Add Album</span> lets you add either kind:</p>
+      <ul>
+        <li><strong>Monthly</strong> — pick a month; the label (“October 2026”) is generated automatically. Only one album per month.</li>
+        <li><strong>Standing</strong> — give it its own title instead (e.g. “Student Photos”) for an ongoing album that isn’t tied to a month.</li>
+      </ul>
+      <p>On the portal, standing albums show first in their own highlighted row, followed by monthly albums newest-first under a “Monthly Albums” heading.</p>
+      <div class="note note--care">
+        <span class="note__tag">Handle with care</span>
+        <p>The link has to be one <strong>anyone can open</strong>, not one that only invites specific people. In Google Drive, share the folder as “Anyone with the link.” In Google Photos, use Share &rarr; <strong>Create link</strong> — not “Invite people,” which only lets named Google accounts in. Get this wrong and parents hit a permissions wall with no error on your end to warn you.</p>
+      </div>
+      <p>Each album has a <span class="ui">Visible to Parents</span> toggle (click to flip) so you can stage a link before publishing it, and a <span class="ui--warn ui">Delete</span> that removes the link from the portal only — it never touches the Drive/Photos album itself.</p>
+
+      <h3>Documents</h3>
+      <p>Unlike Photo Albums, these are real files uploaded straight into the site — the parent handbook, policies, forms — not links to somewhere else. <span class="ui">+ Upload Document</span> takes a file, a title, and an optional category (e.g. “Forms”). <span class="ui">Edit</span> lets you rename or recategorize without re-uploading; to replace the file itself, upload it again as a new document and delete the old one.</p>
+      <p>Each document has the same <span class="ui">Visible to Parents</span> toggle as Photo Albums, and a <span class="ui--warn ui">Delete</span> — but unlike a photo album link, deleting a document removes the actual file. There’s no original to fall back on.</p>
+      <div class="note">
+        <span class="note__tag">Good to know</span>
+        <p>Documents are private by design: a parent can only open one through a one-hour link generated the moment they click, and only if it’s published. There’s no public URL for any uploaded file, unlike the Photo Albums’ “anyone with the link” model.</p>
+      </div>
+    </section>
+
+    <section id="capacity">
+      <span class="eyebrow" data-num="7">Grades &amp; capacity</span>
+      <h2>The grade cap, and why grade confirmation matters</h2>
+      <p>The program runs <strong>TK through 6th grade</strong>, with a limit of <strong>10 students per grade</strong>. The row of grade counts above the Enrolled Students table shows how full each one is; a grade at 10 is marked <span class="ui">FULL</span>.</p>
+      <p>The cap is enforced whenever you send a package or mark a family enrolled. If confirming the grades in step 4 would push any grade past 10 — counting students already enrolled plus every child in that same request — it’s blocked and tells you which grade is full. A full grade also can’t be picked in the confirmation dropdown, even if it was the family’s original choice.</p>
+      <div class="note note--care">
+        <span class="note__tag">Handle with care</span>
+        <p>The grade you confirm is the grade the child is enrolled in — it is not just a note. If a family wrote “3rd” but the child should be in 2nd, fix it in that dropdown before confirming, not after.</p>
+      </div>
+    </section>
+
+    <section id="other">
+      <span class="eyebrow" data-num="8">Other things you can do</span>
+      <h2>Beyond the main workflow</h2>
+      <ul>
+        <li><strong>Add a student or family by hand</strong> — <span class="ui">+ Add Student</span> and <span class="ui">+ Add Family</span> for families who enrolled outside the online form. Link the student to the family so the parents see them in the portal.</li>
+        <li><strong>Edit contact info</strong> — <span class="ui">Edit</span> on a family card updates the guardian name, email, phone, address, and emergency contacts.</li>
+        <li><strong>Attach a stray student</strong> — if the Families tab shows a “not linked to a family” banner, use the dropdown there to attach the child to the right family.</li>
+        <li><strong>Update payment tracking</strong> — on an Enrolled Students row you can set the enrollment date, monthly rate, next payment due, and payment status (<span class="ui">Current</span>, <span class="ui">Pending</span>, <span class="ui">Overdue</span>), and add notes.</li>
+        <li><strong>Remove an enrolled student</strong> — <span class="ui--warn ui">Delete</span> on their Enrolled Students row. Their original application, if any, isn’t touched.</li>
+        <li><strong>Manage Photo Albums &amp; Documents</strong> — see <a href="#media">Photo Albums &amp; Documents</a>.</li>
+        <li><strong>Export applications</strong> — <span class="ui">Export CSV</span> on Submissions, respecting the current filter.</li>
+        <li><strong>Invite another admin</strong> — <span class="ui">+ Invite Admin</span> in the top bar.</li>
+        <li><strong>Track outreach</strong> — the Leads tab, for your own planning.</li>
+        <li><strong>Re-read this guide anytime</strong> — <span class="ui">Admin Guide</span> in the top bar.</li>
+      </ul>
+    </section>
+
+    <section id="care">
+      <span class="eyebrow" data-num="9">Handle with care</span>
+      <h2>Actions that send email, cost money, or can’t be undone easily</h2>
+      <ul>
+        <li><strong>Send Package, Waitlist, and Reject email the family immediately.</strong> Each sends a real email the moment you confirm. There’s no draft or “send later.”</li>
+        <li><strong>Mark as Enrolled sends nothing.</strong> It’s the opposite problem — use it only when the family genuinely doesn’t need a package, or they’ll never get their signing/payment links.</li>
+        <li><strong>The confirmed grade sticks.</strong> As above — it becomes the enrolled grade.</li>
+        <li><strong>Deleting an enrolled student</strong> removes them from the roster immediately. It doesn’t delete their original application.</li>
+        <li><strong>Deleting a family</strong> removes its contact record and every guardian’s portal access. Its students aren’t deleted — they become unlinked and you can reattach them — but the guardians lose access and you’d need to re-invite them.</li>
+        <li><strong>Deleting a document</strong> removes the actual file — there’s no copy kept. Deleting a photo album link only removes the link; the Drive/Photos album is untouched.</li>
+        <li><strong>The manual Signed / Paid toggles are overrides.</strong> Normally these update themselves. Flip one by hand only when you know the family completed the step outside the system.</li>
+      </ul>
+    </section>
+
+    <section id="trouble">
+      <span class="eyebrow" data-num="10">If something looks off</span>
+      <h2>Quick checks</h2>
+      <ul>
+        <li><strong>A family says they didn’t get an email.</strong> Ask them to check spam for a message from <em>enrollments@thelearninglofteg.com</em>.</li>
+        <li><strong>An application isn’t showing.</strong> Check the status filter on the Submissions tab — you may be filtered to <span class="ui">New</span> when the row is <span class="ui">Package Sent</span> or <span class="ui">Enrolled</span>. Click <span class="ui">Total</span> to see everything.</li>
+        <li><strong>Signed or Paid isn’t updating.</strong> It can take a few minutes after the family finishes. If it’s been longer and you’ve confirmed they completed it, flip the toggle by hand.</li>
+        <li><strong>A grade won’t let you send a package or mark someone enrolled.</strong> That grade is at its 10-student limit. The family would need a different grade or a spot on the waitlist.</li>
+        <li><strong>A parent says a photo album or document link doesn’t work.</strong> Check it’s toggled <span class="ui">Visible to Parents</span>, and — for Photo Albums — that the Drive/Photos sharing is set so anyone with the link can open it, not just specifically invited people.</li>
+        <li><strong>Anything else</strong> — a button doing nothing, a screen not loading, an email that clearly went wrong — note what you did and what happened, and pass it to whoever maintains the site. Screenshots help.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>The Learning Loft of Elk Grove — internal admin guide</span>
+    <span>Questions about the system: info@thelearninglofteg.com</span>
+  </footer>
+
+</div>
+
+<script>
+  // Scroll-spy for the table of contents.
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+    var map = {};
+    links.forEach(function (a) {
+      var id = a.getAttribute('href').slice(1);
+      var el = document.getElementById(id);
+      if (el) map[id] = a;
+    });
+    var sections = Object.keys(map).map(function (id) { return document.getElementById(id); });
+    var current = null;
+    function onScroll() {
+      var y = window.scrollY + 120;
+      var active = sections[0];
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i].offsetTop <= y) active = sections[i];
+      }
+      if (active && active.id !== current) {
+        if (current && map[current]) map[current].classList.remove('is-active');
+        current = active.id;
+        map[current].classList.add('is-active');
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+
+  // In-page search: highlights every match inside <main> and lets you
+  // step between them. Plain substring match, case-insensitive — this is
+  // a short internal document, not a search engine.
+  (function () {
+    var input = document.getElementById('docSearch');
+    var countEl = document.getElementById('docSearchCount');
+    var navEl = document.getElementById('docSearchNav');
+    var main = document.querySelector('main');
+    var marks = [];
+    var activeIndex = -1;
+
+    function escapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+    function clearHighlights() {
+      document.querySelectorAll('mark.search-hit').forEach(function (m) {
+        var parent = m.parentNode;
+        parent.replaceChild(document.createTextNode(m.textContent), m);
+        parent.normalize();
+      });
+      marks = [];
+      activeIndex = -1;
+      navEl.classList.remove('is-visible');
+    }
+
+    function setActive(i) {
+      if (!marks.length) return;
+      if (activeIndex >= 0 && marks[activeIndex]) marks[activeIndex].classList.remove('search-hit--active');
+      activeIndex = ((i % marks.length) + marks.length) % marks.length;
+      var m = marks[activeIndex];
+      m.classList.add('search-hit--active');
+      m.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+
+    function runSearch(query) {
+      clearHighlights();
+      if (!query || query.length < 2) { countEl.textContent = ''; return; }
+      var re = new RegExp(escapeRegExp(query), 'gi');
+      var walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT, {
+        acceptNode: function (node) {
+          if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          var tag = node.parentElement && node.parentElement.closest('script,style');
+          return tag ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+        }
+      });
+      var textNodes = [];
+      var n;
+      while ((n = walker.nextNode())) textNodes.push(n);
+
+      textNodes.forEach(function (node) {
+        var text = node.nodeValue;
+        re.lastIndex = 0;
+        if (!re.test(text)) return;
+        re.lastIndex = 0;
+        var frag = document.createDocumentFragment();
+        var lastIndex = 0, m;
+        while ((m = re.exec(text))) {
+          frag.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
+          var mark = document.createElement('mark');
+          mark.className = 'search-hit';
+          mark.textContent = m[0];
+          frag.appendChild(mark);
+          marks.push(mark);
+          lastIndex = m.index + m[0].length;
+          if (m.index === re.lastIndex) re.lastIndex++;
+        }
+        frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+        node.parentNode.replaceChild(frag, node);
+      });
+
+      if (marks.length) {
+        countEl.textContent = marks.length + ' match' + (marks.length === 1 ? '' : 'es');
+        navEl.classList.add('is-visible');
+        setActive(0);
+      } else {
+        countEl.textContent = 'No matches';
+      }
+    }
+
+    var debounceTimer;
+    input.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      var value = input.value.trim();
+      debounceTimer = setTimeout(function () { runSearch(value); }, 150);
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); setActive(activeIndex + (e.shiftKey ? -1 : 1)); }
+      if (e.key === 'Escape') { input.value = ''; clearHighlights(); countEl.textContent = ''; input.blur(); }
+    });
+    document.getElementById('docSearchNext').addEventListener('click', function () { setActive(activeIndex + 1); });
+    document.getElementById('docSearchPrev').addEventListener('click', function () { setActive(activeIndex - 1); });
+  })();
+</script>
+</body>
+</html>
