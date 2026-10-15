@@ -100,69 +100,71 @@
 
     <main class="portal-main">
 
-      <!-- Account not linked to a family -->
-      <div id="noFamilyNotice" class="portal-card" style="display:none; text-align:center;">
-        <h3 style="margin-bottom:.5rem;">This account isn't linked to an enrolled family yet</h3>
-        <p style="color:var(--text-body);">
-          If your family is enrolled and you think this is a mistake, please email
-          <a href="mailto:info@thelearninglofteg.com">info@thelearninglofteg.com</a>.
-        </p>
-      </div>
-
       <div id="portalContent" style="display:none">
         <p class="eyebrow">Parent Portal</p>
         <h1 id="welcomeHeading" style="font-family:var(--font-head); font-size:2rem; margin-bottom:1.5rem;">Welcome</h1>
 
-        <div class="portal-columns">
-          <!-- Students -->
-          <section class="portal-card">
-            <h3 class="portal-card__title">Your Students</h3>
-            <div id="studentList"></div>
-          </section>
-
-          <!-- Family info -->
-          <section class="portal-card">
-            <h3 class="portal-card__title">Family Details</h3>
-            <div id="familyDetails" class="admin-detail-grid"></div>
-            <p class="portal-note">
-              Need to update anything here? Email
-              <a href="mailto:info@thelearninglofteg.com">info@thelearninglofteg.com</a>.
-            </p>
-          </section>
+        <!-- Account not linked to a family — Resources below works regardless, since none of it is family-scoped -->
+        <div id="noFamilyNotice" class="portal-card" style="display:none; text-align:center;">
+          <h3 style="margin-bottom:.5rem;">This account isn't linked to an enrolled family yet</h3>
+          <p style="color:var(--text-body);">
+            If your family is enrolled and you think this is a mistake, please email
+            <a href="mailto:info@thelearninglofteg.com">info@thelearninglofteg.com</a>.
+          </p>
         </div>
 
-        <!-- Guardians -->
-        <section class="portal-card" style="margin-top:1.5rem;">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
-            <h3 class="portal-card__title" style="margin-bottom:0;">Guardians</h3>
-            <button id="addGuardianBtn" class="btn btn--green" style="font-size:.85rem; padding:.5rem 1rem;">+ Invite a guardian</button>
-          </div>
-          <p id="guardianSuccess" style="display:none; margin-top:.85rem; font-size:.88rem; color:var(--green-dark);"></p>
-          <div id="guardianList" style="margin-top:1rem;"></div>
+        <div id="familySection" style="display:none">
+          <div class="portal-columns">
+            <!-- Students -->
+            <section class="portal-card">
+              <h3 class="portal-card__title">Your Students</h3>
+              <div id="studentList"></div>
+            </section>
 
-          <form id="guardianForm" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
-            <p style="font-size:.88rem; color:var(--text-body); margin-bottom:.85rem;">
-              They'll get an email with a link to set their own password. They'll see the same family information you do.
-            </p>
-            <div class="form-group">
-              <label for="guardianEmail">Email</label>
-              <input type="email" id="guardianEmail" required autocomplete="off" />
+            <!-- Family info -->
+            <section class="portal-card">
+              <h3 class="portal-card__title">Family Details</h3>
+              <div id="familyDetails" class="admin-detail-grid"></div>
+              <p class="portal-note">
+                Need to update anything here? Email
+                <a href="mailto:info@thelearninglofteg.com">info@thelearninglofteg.com</a>.
+              </p>
+            </section>
+          </div>
+
+          <!-- Guardians -->
+          <section class="portal-card" style="margin-top:1.5rem;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+              <h3 class="portal-card__title" style="margin-bottom:0;">Guardians</h3>
+              <button id="addGuardianBtn" class="btn btn--green" style="font-size:.85rem; padding:.5rem 1rem;">+ Invite a guardian</button>
             </div>
-            <div class="form-group">
-              <label for="guardianName">Name</label>
-              <input type="text" id="guardianName" autocomplete="off" />
-            </div>
-            <div class="form-group">
-              <label for="guardianRelationship">Relationship <span style="color:var(--text-muted); font-weight:400;">(optional)</span></label>
-              <input type="text" id="guardianRelationship" placeholder="e.g. Father, Grandparent" autocomplete="off" />
-            </div>
-            <p id="guardianMsg" class="admin-error" style="display:none;"></p>
-            <div style="display:flex; gap:.6rem;">
-              <button type="submit" class="btn btn--green" style="font-size:.88rem;">Send Invite</button>
-              <button type="button" id="cancelGuardianBtn" class="btn btn--outline" style="font-size:.88rem;">Cancel</button>
-            </div>
-          </form>
-        </section>
+            <p id="guardianSuccess" style="display:none; margin-top:.85rem; font-size:.88rem; color:var(--green-dark);"></p>
+            <div id="guardianList" style="margin-top:1rem;"></div>
+
+            <form id="guardianForm" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
+              <p style="font-size:.88rem; color:var(--text-body); margin-bottom:.85rem;">
+                They'll get an email with a link to set their own password. They'll see the same family information you do.
+              </p>
+              <div class="form-group">
+                <label for="guardianEmail">Email</label>
+                <input type="email" id="guardianEmail" required autocomplete="off" />
+              </div>
+              <div class="form-group">
+                <label for="guardianName">Name</label>
+                <input type="text" id="guardianName" autocomplete="off" />
+              </div>
+              <div class="form-group">
+                <label for="guardianRelationship">Relationship <span style="color:var(--text-muted); font-weight:400;">(optional)</span></label>
+                <input type="text" id="guardianRelationship" placeholder="e.g. Father, Grandparent" autocomplete="off" />
+              </div>
+              <p id="guardianMsg" class="admin-error" style="display:none;"></p>
+              <div style="display:flex; gap:.6rem;">
+                <button type="submit" class="btn btn--green" style="font-size:.88rem;">Send Invite</button>
+                <button type="button" id="cancelGuardianBtn" class="btn btn--outline" style="font-size:.88rem;">Cancel</button>
+              </div>
+            </form>
+          </section>
+        </div>
 
         <!-- Section links -->
         <h2 style="font-family:var(--font-head); font-size:1.5rem; margin:2.5rem 0 1rem;">Resources</h2>
@@ -322,6 +324,18 @@
     async function loadPortal() {
       const content = document.getElementById('portalContent');
       const notice = document.getElementById('noFamilyNotice');
+      const familySection = document.getElementById('familySection');
+
+      // The Resources grid (Photo Albums, Documents, Calendar, Field Trips)
+      // isn't family-scoped — any signed-in account can see it, family or
+      // not (e.g. staff previewing the portal). Only the Students/Family
+      // Details/Guardians section below needs an actual family link.
+      content.style.display = 'block';
+
+      function noFamily() {
+        notice.style.display = 'block';
+        familySection.style.display = 'none';
+      }
 
       // Scope to the families this user is a guardian of. Needed because an
       // account can also be an admin (staff enrolling their own kids), and
@@ -329,16 +343,14 @@
       // is the guardian link specifically.
       const { data: famIds, error: idErr } = await sb.rpc('my_family_ids');
       if (idErr) {
-        notice.style.display = 'block';
         notice.querySelector('h3').textContent = 'Something went wrong loading your family';
         notice.querySelector('p').textContent = 'Please refresh, or email info@thelearninglofteg.com if it keeps happening.';
-        content.style.display = 'none';
+        noFamily();
         return;
       }
       const ids = (famIds || []).map(r => (typeof r === 'string' ? r : r.my_family_ids));
       if (!ids.length) {
-        notice.style.display = 'block';
-        content.style.display = 'none';
+        noFamily();
         return;
       }
 
@@ -354,21 +366,19 @@
         .in('id', ids);
 
       if (error) {
-        notice.style.display = 'block';
         notice.querySelector('h3').textContent = 'Something went wrong loading your family';
         notice.querySelector('p').textContent = 'Please refresh, or email info@thelearninglofteg.com if it keeps happening.';
-        content.style.display = 'none';
+        noFamily();
         return;
       }
 
       if (!families || families.length === 0) {
-        notice.style.display = 'block';
-        content.style.display = 'none';
+        noFamily();
         return;
       }
 
       notice.style.display = 'none';
-      content.style.display = 'block';
+      familySection.style.display = 'block';
 
       // A guardian normally belongs to exactly one family; render the first.
       const fam = families[0];
