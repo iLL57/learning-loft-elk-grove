@@ -98,33 +98,26 @@
         return;
       }
 
+      // Signed once up front so the same URL backs both the embedded
+      // viewer and the "Open in new tab" fallback — an hour is plenty
+      // for a single page view.
+      const { data: signed, error: signError } = await sb.storage.from('calendar').createSignedUrl(doc.storage_path, 3600);
+      if (signError || !signed?.signedUrl) {
+        content.innerHTML = '<p class="admin-empty">Something went wrong loading the calendar. Please refresh.</p>';
+        return;
+      }
+
       content.innerHTML = `
-        <div class="portal-doc-row">
-          <div class="portal-doc-row__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2"/>
-              <path d="M16 2v4M8 2v4M3 10h18"/>
-            </svg>
-          </div>
-          <div class="portal-doc-row__info">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+          <div>
             <strong>${esc(doc.file_name)}</strong>
-            <span class="portal-doc-row__category">${formatFileSize(doc.file_size)}</span>
+            <span style="color:var(--text-muted); font-size:.85rem; margin-left:.5rem;">${formatFileSize(doc.file_size)}</span>
           </div>
-          <button class="btn btn--outline" id="viewCalendarBtn" style="flex-shrink:0;">View &rarr;</button>
+          <a class="btn btn--outline" href="${esc(signed.signedUrl)}" target="_blank" rel="noopener" style="flex-shrink:0;">Open in new tab &rarr;</a>
         </div>
+        <iframe src="${esc(signed.signedUrl)}" title="Program calendar" style="width:100%; height:80vh; min-height:480px; border:1px solid var(--border); border-radius:var(--r-md); background:var(--white-warm);"></iframe>
+        <p style="margin-top:.75rem; font-size:.8rem; color:var(--text-muted);">Not loading? <a href="${esc(signed.signedUrl)}" target="_blank" rel="noopener">Open it in a new tab instead</a>.</p>
       `;
-      document.getElementById('viewCalendarBtn').addEventListener('click', async (e) => {
-        const btn = e.target;
-        const originalText = btn.textContent;
-        btn.textContent = 'Opening…'; btn.disabled = true;
-        const { data: signed, error: signError } = await sb.storage.from('calendar').createSignedUrl(doc.storage_path, 3600);
-        btn.textContent = originalText; btn.disabled = false;
-        if (signError || !signed?.signedUrl) {
-          alert('Could not open the calendar. Please try again, or email info@thelearninglofteg.com.');
-          return;
-        }
-        window.open(signed.signedUrl, '_blank', 'noopener');
-      });
     }
   </script>
 </body>
