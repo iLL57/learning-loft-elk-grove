@@ -110,6 +110,8 @@
         <button class="admin-tab" data-tab="contact">Contact Messages</button>
         <button class="admin-tab" data-tab="photos">Photo Albums</button>
         <button class="admin-tab" data-tab="documents">Documents</button>
+        <button class="admin-tab" data-tab="calendar">Calendar</button>
+        <button class="admin-tab" data-tab="fieldtrips">Field Trips &amp; Events</button>
       </div>
     </div>
 
@@ -350,6 +352,49 @@
               </thead>
               <tbody id="documentsBody">
                 <tr><td colspan="6" class="admin-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Calendar Tab ── -->
+      <div id="tab-calendar" class="admin-panel" style="display:none">
+        <div class="admin-panel-head">
+          <h3>Calendar</h3>
+          <button class="btn btn--green" id="uploadCalendarBtn">Upload Calendar PDF</button>
+        </div>
+        <p style="color:var(--text-body); font-size:.9rem; margin-bottom:1.25rem;">
+          One file, shown to every parent on the portal's Calendar page. Uploading a new one replaces it — there's only ever a single current calendar.
+        </p>
+        <div class="admin-card">
+          <div id="calendarCurrent"><p class="admin-empty">Loading…</p></div>
+        </div>
+      </div>
+
+      <!-- ── Field Trips & Events Tab ── -->
+      <div id="tab-fieldtrips" class="admin-panel" style="display:none">
+        <div class="admin-panel-head">
+          <h3>Field Trips &amp; Events</h3>
+          <button class="btn btn--green" id="addFieldTripBtn">+ Add Item</button>
+        </div>
+        <p style="color:var(--text-body); font-size:.9rem; margin-bottom:1.25rem;">
+          Field trips, Trunk-or-Treat, special curriculum days — anything parents need a sign-up link or flyer for. Each item is either a link (a Google Form) or an uploaded file.
+        </p>
+        <div class="admin-card">
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Date</th>
+                  <th>Link / File</th>
+                  <th>Visible to Parents</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="fieldTripsBody">
+                <tr><td colspan="5" class="admin-empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
@@ -650,6 +695,74 @@
     </div>
   </div>
 
+  <!-- ── Calendar Upload Modal ── -->
+  <div id="calendarModal" class="admin-modal" style="display:none">
+    <div class="admin-modal__overlay" id="calendarModalOverlay"></div>
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="closeCalendarModal">&times;</button>
+      <h3>Upload Calendar PDF</h3>
+      <form id="calendarForm">
+        <div class="form-group">
+          <label>File <span class="req">*</span></label>
+          <input type="file" name="file" required accept=".pdf" />
+          <span style="font-size:.75rem; color:var(--text-muted);">PDF only. This replaces whatever calendar is currently on the portal.</span>
+        </div>
+        <p id="calendarFormError" class="admin-error" style="display:none;"></p>
+        <button type="submit" class="form-submit" id="calendarSubmitBtn">Upload</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Field Trip / Event Modal ── -->
+  <div id="fieldTripModal" class="admin-modal" style="display:none">
+    <div class="admin-modal__overlay" id="fieldTripModalOverlay"></div>
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="closeFieldTripModal">&times;</button>
+      <h3 id="fieldTripModalTitle">Add Item</h3>
+      <form id="fieldTripForm">
+        <div class="form-group">
+          <label>Title <span class="req">*</span></label>
+          <input type="text" name="title" required placeholder="e.g. Trunk-or-Treat Sign-Up" />
+        </div>
+        <div class="form-group">
+          <label>Description <span style="color:var(--text-muted); font-weight:400;">(optional)</span></label>
+          <input type="text" name="description" placeholder="A short note shown under the title" />
+        </div>
+        <div class="form-group">
+          <label>Date <span style="color:var(--text-muted); font-weight:400;">(optional)</span></label>
+          <input type="date" name="eventDate" />
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <div style="display:flex; gap:1.5rem; margin-top:.3rem;">
+            <label style="display:flex; align-items:center; gap:.4rem; font-weight:400; margin:0;">
+              <input type="radio" name="itemType" value="link" checked style="width:auto;" /> Link
+            </label>
+            <label style="display:flex; align-items:center; gap:.4rem; font-weight:400; margin:0;">
+              <input type="radio" name="itemType" value="file" style="width:auto;" /> Upload a file
+            </label>
+          </div>
+        </div>
+        <div class="form-group" id="fieldTripLinkGroup">
+          <label>URL <span class="req">*</span></label>
+          <input type="url" name="externalUrl" placeholder="https://forms.google.com/..." />
+        </div>
+        <div class="form-group" id="fieldTripFileGroup" style="display:none;">
+          <label>File <span class="req">*</span></label>
+          <input type="file" name="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.heic" />
+          <span id="fieldTripCurrentFile" style="font-size:.78rem; color:var(--text-muted); display:none;"></span>
+        </div>
+        <div class="form-group" style="display:flex; align-items:center; gap:.5rem;">
+          <input type="checkbox" name="published" id="fieldTripPublished" checked />
+          <label for="fieldTripPublished" style="margin:0;">Visible to parents</label>
+        </div>
+        <p id="fieldTripFormError" class="admin-error" style="display:none;"></p>
+        <input type="hidden" name="editId" />
+        <button type="submit" class="form-submit" id="fieldTripSubmitBtn">Save</button>
+      </form>
+    </div>
+  </div>
+
   <script>
     const { createClient } = window.supabase;
     const sb = createClient(
@@ -878,7 +991,7 @@
       return { new: badge('badge--blue','New'), replied: badge('badge--green','Replied') }[s] || badge('badge--muted', s);
     }
 
-    function loadAll() { loadSubmissions(); loadStudents(); loadFamilies(); loadLeads(); loadContact(); loadAlbums(); loadDocuments(); }
+    function loadAll() { loadSubmissions(); loadStudents(); loadFamilies(); loadLeads(); loadContact(); loadAlbums(); loadDocuments(); loadCalendarDocument(); loadFieldTrips(); }
 
     // ── Submissions ──
     let allSubs = [];
@@ -1963,6 +2076,306 @@
         document.getElementById('documentModal').style.display = 'none';
         btn.textContent = 'Save Changes'; btn.disabled = false;
         loadDocuments();
+      }
+    });
+
+    // ── Calendar ──
+    let currentCalendarDoc = null;
+
+    async function loadCalendarDocument() {
+      const { data } = await sb.from('calendar_document').select('*').order('updated_at', { ascending: false }).limit(1);
+      currentCalendarDoc = (data && data[0]) || null;
+      renderCalendarDocument();
+    }
+
+    function renderCalendarDocument() {
+      const box = document.getElementById('calendarCurrent');
+      if (!currentCalendarDoc) {
+        box.innerHTML = '<p class="admin-empty">No calendar uploaded yet.</p>';
+        return;
+      }
+      const d = currentCalendarDoc;
+      box.innerHTML = `
+        <div style="padding:1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+          <div>
+            <strong>${esc(d.file_name)}</strong>
+            <div style="color:var(--text-muted); font-size:.82rem; margin-top:.2rem;">${formatFileSize(d.file_size)} &middot; Uploaded ${fmt(d.updated_at)}</div>
+          </div>
+          <div style="display:flex; gap:.6rem;">
+            <button class="btn btn--outline" id="viewCalendarBtn" style="font-size:.85rem; padding:.5rem 1rem;">View</button>
+            <button class="btn btn--outline" id="deleteCalendarBtn" style="font-size:.85rem; padding:.5rem 1rem; color:#c0392b; border-color:#c0392b;">Delete</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('viewCalendarBtn').addEventListener('click', async () => {
+        const { data, error } = await sb.storage.from('calendar').createSignedUrl(d.storage_path, 3600);
+        if (error || !data?.signedUrl) { alert('Could not open the calendar: ' + (error?.message || 'unknown error')); return; }
+        window.open(data.signedUrl, '_blank', 'noopener');
+      });
+      document.getElementById('deleteCalendarBtn').addEventListener('click', async () => {
+        if (!confirm('Delete the current calendar? Parents will no longer see one until you upload a new one.')) return;
+        await sb.storage.from('calendar').remove([d.storage_path]);
+        await sb.from('calendar_document').delete().eq('id', d.id);
+        loadCalendarDocument();
+      });
+    }
+
+    document.getElementById('uploadCalendarBtn').addEventListener('click', () => {
+      document.getElementById('calendarFormError').style.display = 'none';
+      document.getElementById('calendarForm').reset();
+      document.getElementById('calendarModal').style.display = 'flex';
+    });
+    document.getElementById('closeCalendarModal').addEventListener('click', () => document.getElementById('calendarModal').style.display = 'none');
+    document.getElementById('calendarModalOverlay').addEventListener('click', () => document.getElementById('calendarModal').style.display = 'none');
+
+    let calendarSaving = false;
+    document.getElementById('calendarForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (calendarSaving) return;
+      calendarSaving = true;
+      const f = e.target;
+      const btn = document.getElementById('calendarSubmitBtn');
+      const errEl = document.getElementById('calendarFormError');
+      errEl.style.display = 'none';
+      const file = f.file.files[0];
+      if (!file) {
+        errEl.textContent = 'Please choose a file.'; errEl.style.display = 'block';
+        calendarSaving = false;
+        return;
+      }
+      btn.textContent = 'Uploading…'; btn.disabled = true;
+      const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      const path = `${Date.now()}-${safeName}`;
+      const { error: uploadError } = await sb.storage.from('calendar').upload(path, file, { contentType: file.type || undefined });
+      if (uploadError) {
+        errEl.textContent = 'Upload failed: ' + uploadError.message; errEl.style.display = 'block';
+        btn.textContent = 'Upload'; btn.disabled = false;
+        calendarSaving = false;
+        return;
+      }
+      // Replace: remove the old row/file (if any) once the new upload succeeds.
+      const previous = currentCalendarDoc;
+      const { error: insertError } = await sb.from('calendar_document').insert({
+        storage_path: path, file_name: file.name, file_size: file.size, mime_type: file.type || null,
+      });
+      if (insertError) {
+        await sb.storage.from('calendar').remove([path]);
+        errEl.textContent = 'Could not save: ' + insertError.message; errEl.style.display = 'block';
+        btn.textContent = 'Upload'; btn.disabled = false;
+        calendarSaving = false;
+        return;
+      }
+      if (previous) {
+        await sb.storage.from('calendar').remove([previous.storage_path]);
+        await sb.from('calendar_document').delete().eq('id', previous.id);
+      }
+      calendarSaving = false;
+      btn.textContent = 'Upload'; btn.disabled = false;
+      document.getElementById('calendarModal').style.display = 'none';
+      loadCalendarDocument();
+    });
+
+    // ── Field Trips & Events ──
+    let allFieldTrips = [];
+
+    async function loadFieldTrips() {
+      const { data } = await sb.from('field_trip_events').select('*').order('event_date', { ascending: true, nullsFirst: false }).order('created_at', { ascending: false });
+      allFieldTrips = data || [];
+      renderFieldTrips();
+    }
+
+    function fieldTripDateLabel(dateStr) {
+      if (!dateStr) return '—';
+      const [y, m, day] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function renderFieldTrips() {
+      const body = document.getElementById('fieldTripsBody');
+      if (!allFieldTrips.length) {
+        body.innerHTML = '<tr><td colspan="5" class="admin-empty">No field trips or events added yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = allFieldTrips.map(t => `
+        <tr>
+          <td><strong>${esc(t.title)}</strong>${t.description ? `<div style="color:var(--text-muted); font-size:.8rem; margin-top:.15rem;">${esc(t.description)}</div>` : ''}</td>
+          <td style="white-space:nowrap">${fieldTripDateLabel(t.event_date)}</td>
+          <td>${t.external_url
+            ? `<a href="${esc(t.external_url)}" target="_blank" rel="noopener" style="word-break:break-all;">${esc(t.external_url)}</a>`
+            : `<button class="admin-link view-field-trip-file" data-path="${esc(t.storage_path)}">${esc(t.file_name)}</button> <span style="color:var(--text-muted); font-size:.78rem;">(${formatFileSize(t.file_size)})</span>`}</td>
+          <td><button class="toggle-field-trip-published" data-id="${t.id}" data-value="${t.published}">${t.published ? badge('badge--green', 'Visible') : badge('badge--muted', 'Hidden')}</button></td>
+          <td style="white-space:nowrap">
+            <button class="admin-link edit-field-trip" data-id="${t.id}">Edit</button>
+            &nbsp;·&nbsp;
+            <button class="admin-link delete-field-trip" data-id="${t.id}" style="color:#c0392b;">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+
+      body.querySelectorAll('.view-field-trip-file').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const { data, error } = await sb.storage.from('field_trips').createSignedUrl(btn.dataset.path, 3600);
+          if (error || !data?.signedUrl) { alert('Could not open that file: ' + (error?.message || 'unknown error')); return; }
+          window.open(data.signedUrl, '_blank', 'noopener');
+        });
+      });
+      body.querySelectorAll('.toggle-field-trip-published').forEach(btn => {
+        btn.style.cssText = 'background:none; border:none; padding:0; cursor:pointer;';
+        btn.title = 'Click to toggle';
+        btn.addEventListener('click', async () => {
+          await sb.from('field_trip_events').update({ published: btn.dataset.value !== 'true' }).eq('id', btn.dataset.id);
+          loadFieldTrips();
+        });
+      });
+      body.querySelectorAll('.edit-field-trip').forEach(btn => {
+        btn.addEventListener('click', () => openFieldTripModal(allFieldTrips.find(t => t.id === btn.dataset.id)));
+      });
+      body.querySelectorAll('.delete-field-trip').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const item = allFieldTrips.find(t => t.id === btn.dataset.id);
+          if (!confirm(`Delete "${item.title}"? This removes it from the portal permanently.`)) return;
+          btn.disabled = true;
+          if (item.storage_path) {
+            const { error: storageError } = await sb.storage.from('field_trips').remove([item.storage_path]);
+            if (storageError) { alert('Could not delete the file: ' + storageError.message); btn.disabled = false; return; }
+          }
+          const { error } = await sb.from('field_trip_events').delete().eq('id', item.id);
+          if (error) { alert('Could not delete: ' + error.message); btn.disabled = false; return; }
+          loadFieldTrips();
+        });
+      });
+    }
+
+    function updateFieldTripTypeUI() {
+      const form = document.getElementById('fieldTripForm');
+      const isLink = form.itemType.value === 'link';
+      document.getElementById('fieldTripLinkGroup').style.display = isLink ? 'block' : 'none';
+      document.getElementById('fieldTripFileGroup').style.display = isLink ? 'none' : 'block';
+      form.externalUrl.required = isLink;
+    }
+    document.querySelectorAll('#fieldTripForm input[name="itemType"]').forEach(radio => {
+      radio.addEventListener('change', updateFieldTripTypeUI);
+    });
+
+    function openFieldTripModal(item) {
+      const form = document.getElementById('fieldTripForm');
+      const fileGroup = document.getElementById('fieldTripFileGroup');
+      const currentFileLabel = document.getElementById('fieldTripCurrentFile');
+      document.getElementById('fieldTripFormError').style.display = 'none';
+      form.reset();
+      if (item) {
+        document.getElementById('fieldTripModalTitle').textContent = 'Edit Item';
+        form.title.value = item.title;
+        form.description.value = item.description || '';
+        form.eventDate.value = item.event_date || '';
+        form.published.checked = item.published;
+        form.editId.value = item.id;
+        if (item.external_url) {
+          form.itemType.value = 'link';
+          form.externalUrl.value = item.external_url;
+          currentFileLabel.style.display = 'none';
+        } else {
+          form.itemType.value = 'file';
+          form.file.required = false;
+          currentFileLabel.textContent = `Current file: ${item.file_name} — upload a new one instead if you need to replace it.`;
+          currentFileLabel.style.display = 'block';
+        }
+      } else {
+        document.getElementById('fieldTripModalTitle').textContent = 'Add Item';
+        form.itemType.value = 'link';
+        form.published.checked = true;
+        form.editId.value = '';
+        currentFileLabel.style.display = 'none';
+      }
+      updateFieldTripTypeUI();
+      document.getElementById('fieldTripModal').style.display = 'flex';
+    }
+
+    document.getElementById('addFieldTripBtn').addEventListener('click', () => openFieldTripModal(null));
+    document.getElementById('closeFieldTripModal').addEventListener('click', () => document.getElementById('fieldTripModal').style.display = 'none');
+    document.getElementById('fieldTripModalOverlay').addEventListener('click', () => document.getElementById('fieldTripModal').style.display = 'none');
+
+    let fieldTripSaving = false;
+    document.getElementById('fieldTripForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (fieldTripSaving) return;
+      fieldTripSaving = true;
+      const f = e.target;
+      const btn = document.getElementById('fieldTripSubmitBtn');
+      const errEl = document.getElementById('fieldTripFormError');
+      errEl.style.display = 'none';
+      const id = f.editId.value;
+      const isLink = f.itemType.value === 'link';
+      const basePayload = {
+        title: f.title.value.trim(),
+        description: f.description.value.trim() || null,
+        event_date: f.eventDate.value || null,
+        published: f.published.checked,
+      };
+
+      if (isLink) {
+        btn.textContent = 'Saving…'; btn.disabled = true;
+        const payload = { ...basePayload, external_url: f.externalUrl.value.trim(), storage_path: null, file_name: null, file_size: null, mime_type: null };
+        const { error } = id
+          ? await sb.from('field_trip_events').update(payload).eq('id', id)
+          : await sb.from('field_trip_events').insert(payload);
+        fieldTripSaving = false;
+        btn.textContent = 'Save'; btn.disabled = false;
+        if (error) { errEl.textContent = 'Could not save: ' + error.message; errEl.style.display = 'block'; return; }
+        document.getElementById('fieldTripModal').style.display = 'none';
+        loadFieldTrips();
+        return;
+      }
+
+      // File type — only need to touch Storage on a new upload, not a metadata-only edit.
+      const file = f.file.files[0];
+      if (!id && !file) {
+        errEl.textContent = 'Please choose a file.'; errEl.style.display = 'block';
+        fieldTripSaving = false;
+        return;
+      }
+      if (file) {
+        btn.textContent = 'Uploading…'; btn.disabled = true;
+        const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        const path = `${Date.now()}-${safeName}`;
+        const { error: uploadError } = await sb.storage.from('field_trips').upload(path, file, { contentType: file.type || undefined });
+        if (uploadError) {
+          errEl.textContent = 'Upload failed: ' + uploadError.message; errEl.style.display = 'block';
+          btn.textContent = 'Save'; btn.disabled = false;
+          fieldTripSaving = false;
+          return;
+        }
+        const payload = { ...basePayload, external_url: null, storage_path: path, file_name: file.name, file_size: file.size, mime_type: file.type || null };
+        const { error } = id
+          ? await sb.from('field_trip_events').update(payload).eq('id', id)
+          : await sb.from('field_trip_events').insert(payload);
+        if (error) {
+          await sb.storage.from('field_trips').remove([path]);
+          errEl.textContent = 'Could not save: ' + error.message; errEl.style.display = 'block';
+          btn.textContent = 'Save'; btn.disabled = false;
+          fieldTripSaving = false;
+          return;
+        }
+        // Replacing an existing file on edit: clean up the old object once the new one is saved.
+        if (id) {
+          const previous = allFieldTrips.find(x => x.id === id);
+          if (previous && previous.storage_path && previous.storage_path !== path) {
+            await sb.storage.from('field_trips').remove([previous.storage_path]);
+          }
+        }
+        fieldTripSaving = false;
+        btn.textContent = 'Save'; btn.disabled = false;
+        document.getElementById('fieldTripModal').style.display = 'none';
+        loadFieldTrips();
+      } else {
+        // Metadata-only edit, keeping the existing file.
+        btn.textContent = 'Saving…'; btn.disabled = true;
+        const { error } = await sb.from('field_trip_events').update(basePayload).eq('id', id);
+        fieldTripSaving = false;
+        btn.textContent = 'Save'; btn.disabled = false;
+        if (error) { errEl.textContent = 'Could not save: ' + error.message; errEl.style.display = 'block'; return; }
+        document.getElementById('fieldTripModal').style.display = 'none';
+        loadFieldTrips();
       }
     });
 
