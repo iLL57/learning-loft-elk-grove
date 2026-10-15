@@ -14,6 +14,16 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon-180.png">
   <link rel="stylesheet" href="/css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    /* Printing the page should print just the calendar, not the nav/heading
+       around it. visibility (not display) keeps the iframe in the layout
+       tree so its cross-origin PDF content still gets painted. */
+    @media print {
+      body * { visibility: hidden; }
+      #calendarFrame, #calendarFrame * { visibility: visible; }
+      #calendarFrame { position: fixed; inset: 0; width: 100%; height: 100%; border: none; }
+    }
+  </style>
 </head>
 <body class="admin-body">
 
@@ -120,11 +130,15 @@
             <strong>${esc(doc.file_name)}</strong>
             <span style="color:var(--text-muted); font-size:.85rem; margin-left:.5rem;">${formatFileSize(doc.file_size)}</span>
           </div>
-          <a class="btn btn--outline" href="${esc(signed.signedUrl)}" target="_blank" rel="noopener" style="flex-shrink:0;">Open in new tab &rarr;</a>
+          <div style="display:flex; gap:.6rem; flex-shrink:0;">
+            <button class="btn btn--outline" id="printCalendarBtn">Print</button>
+            <a class="btn btn--outline" href="${esc(signed.signedUrl)}" target="_blank" rel="noopener">Open in new tab &rarr;</a>
+          </div>
         </div>
-        <iframe src="${esc(embedUrl)}" title="Program calendar" style="width:100%; height:80vh; min-height:480px; border:1px solid var(--border); border-radius:var(--r-md); background:var(--white-warm);"></iframe>
+        <iframe id="calendarFrame" src="${esc(embedUrl)}" title="Program calendar" style="width:100%; height:80vh; min-height:480px; border:1px solid var(--border); border-radius:var(--r-md); background:var(--white-warm);"></iframe>
         <p style="margin-top:.75rem; font-size:.8rem; color:var(--text-muted);">Not loading? <a href="${esc(signed.signedUrl)}" target="_blank" rel="noopener">Open it in a new tab instead</a>.</p>
       `;
+      document.getElementById('printCalendarBtn').addEventListener('click', () => window.print());
     }
   </script>
 </body>
